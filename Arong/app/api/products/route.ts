@@ -4,12 +4,16 @@ import db from '@/lib/db';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
+  const audience = searchParams.get('audience');
   const search = searchParams.get('search');
   const sort = searchParams.get('sort') || 'latest';
   const limit = parseInt(searchParams.get('limit') || '20');
   const offset = parseInt(searchParams.get('offset') || '0');
   const featured = searchParams.get('featured');
   const newArrival = searchParams.get('new_arrival');
+
+  const ALLOWED_AUDIENCE = ['men', 'women', 'baby', 'unisex'];
+  const audienceFilter = audience && ALLOWED_AUDIENCE.includes(audience) ? audience : null;
 
   let query = `
     SELECT p.*, c.name as category_name, c.slug as category_slug,
@@ -23,6 +27,10 @@ export async function GET(req: NextRequest) {
   if (category) {
     query += ' AND c.slug = ?';
     params.push(category);
+  }
+  if (audienceFilter) {
+    query += ' AND p.audience = ?';
+    params.push(audienceFilter);
   }
   if (search) {
     query += ' AND (p.name LIKE ? OR p.brand LIKE ? OR p.description LIKE ?)';
@@ -46,9 +54,11 @@ export async function GET(req: NextRequest) {
 
   const countQuery = `SELECT COUNT(*) as total FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1${
     category ? ' AND c.slug = ?' : ''
-  }${search ? ' AND (p.name LIKE ? OR p.brand LIKE ? OR p.description LIKE ?)' : ''}${
-    featured === '1' ? ' AND p.is_featured = 1' : ''
-  }${newArrival === '1' ? ' AND p.is_new_arrival = 1' : ''}`;
+  }${audienceFilter ? ' AND p.audience = ?' : ''}${
+    search ? ' AND (p.name LIKE ? OR p.brand LIKE ? OR p.description LIKE ?)' : ''
+  }${featured === '1' ? ' AND p.is_featured = 1' : ''}${
+    newArrival === '1' ? ' AND p.is_new_arrival = 1' : ''
+  }`;
 
   const total = (db.prepare(countQuery).get(...params) as { total: number }).total;
 

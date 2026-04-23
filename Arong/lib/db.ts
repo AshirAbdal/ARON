@@ -32,6 +32,7 @@ db.exec(`
     price_max REAL,
     brand TEXT,
     category_id INTEGER,
+    audience TEXT DEFAULT 'unisex',
     is_new_arrival INTEGER DEFAULT 0,
     is_featured INTEGER DEFAULT 0,
     free_delivery INTEGER DEFAULT 0,
@@ -64,6 +65,7 @@ db.exec(`
     order_number TEXT UNIQUE NOT NULL,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
+    email TEXT,
     address TEXT NOT NULL,
     city TEXT NOT NULL,
     division TEXT NOT NULL,
@@ -102,6 +104,20 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Migration: ensure `audience` column exists on products (idempotent)
+try {
+  db.exec(`ALTER TABLE products ADD COLUMN audience TEXT DEFAULT 'unisex'`);
+} catch {
+  // column already exists — safe to ignore
+}
+
+// Migration: ensure `email` column exists on orders (idempotent)
+try {
+  db.exec(`ALTER TABLE orders ADD COLUMN email TEXT`);
+} catch {
+  // column already exists — safe to ignore
+}
 
 // Seed initial data if empty
 const catCount = (db.prepare('SELECT COUNT(*) as c FROM categories').get() as { c: number }).c;

@@ -12,6 +12,7 @@ interface Product {
   price_min: number;
   price_max?: number;
   category_name?: string;
+  audience?: string;
   stock: number;
   is_new_arrival: number;
   is_featured: number;
@@ -19,17 +20,26 @@ interface Product {
   created_at: string;
 }
 
+const AUDIENCE_LABEL: Record<string, string> = {
+  men: 'Men',
+  women: 'Women',
+  baby: 'Baby',
+  unisex: 'Unisex',
+};
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [audienceFilter, setAudienceFilter] = useState('');
   const [deleting, setDeleting] = useState<number | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
     const params = new URLSearchParams({ limit: '100' });
     if (search) params.set('search', search);
+    if (audienceFilter) params.set('audience', audienceFilter);
     const res = await fetch(`/api/products?${params}`);
     const data = await res.json();
     setProducts(data.products || []);
@@ -39,7 +49,8 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, audienceFilter]);
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
@@ -65,17 +76,31 @@ export default function AdminProductsPage() {
         </Link>
       </div>
 
-      {/* Search */}
+      {/* Search + filters */}
       <div className="bg-white rounded-lg shadow-sm border p-4 mb-5">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name or brand..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 text-sm rounded focus:outline-none focus:border-black"
-          />
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name or brand..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 text-sm rounded focus:outline-none focus:border-black"
+            />
+          </div>
+          <select
+            aria-label="Filter by audience"
+            value={audienceFilter}
+            onChange={(e) => setAudienceFilter(e.target.value)}
+            className="border border-gray-300 px-3 py-2 text-sm rounded focus:outline-none focus:border-black"
+          >
+            <option value="">All Audiences</option>
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+            <option value="baby">Baby</option>
+            <option value="unisex">Unisex</option>
+          </select>
         </div>
       </div>
 
@@ -93,11 +118,13 @@ export default function AdminProductsPage() {
             </Link>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="border-b bg-gray-50">
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Product</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Category</th>
+                <th className="text-left px-5 py-3 font-medium text-gray-600">Audience</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Price</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Stock</th>
                 <th className="text-left px-5 py-3 font-medium text-gray-600">Flags</th>
@@ -131,6 +158,9 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-5 py-3 text-gray-600">{p.category_name || '—'}</td>
+                  <td className="px-5 py-3 text-gray-600">
+                    {AUDIENCE_LABEL[p.audience || 'unisex'] || 'Unisex'}
+                  </td>
                   <td className="px-5 py-3 font-medium">
                     {p.price_max && p.price_max !== p.price_min
                       ? `৳${p.price_min} - ৳${p.price_max}`
@@ -182,6 +212,7 @@ export default function AdminProductsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

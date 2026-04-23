@@ -65,6 +65,7 @@ Core product table. Each product belongs to one category.
 | `price_max` | REAL | | Maximum price (for variant ranges) |
 | `brand` | TEXT | | Brand name |
 | `category_id` | INTEGER | FOREIGN KEY → categories(id) | Category reference |
+| `audience` | TEXT | DEFAULT `'unisex'` | Target audience: `men`, `women`, `baby`, or `unisex` |
 | `is_new_arrival` | INTEGER | DEFAULT 0 | Boolean flag (0/1) |
 | `is_featured` | INTEGER | DEFAULT 0 | Boolean flag (0/1) — shown on home page |
 | `free_delivery` | INTEGER | DEFAULT 0 | Boolean flag (0/1) — shows "Free Delivery" badge |
@@ -195,6 +196,7 @@ Fetches a paginated, filtered product list.
 | Parameter | Type | Description |
 |---|---|---|
 | `category` | string | Filter by category slug (e.g. `skincare`) |
+| `audience` | string | Filter by audience: `men`, `women`, `baby`, or `unisex` |
 | `search` | string | Full-text search on name, brand, description |
 | `sort` | string | `latest` (default), `oldest`, `price_asc`, `price_desc`, `name_asc` |
 | `limit` | number | Results per page (default: 20) |
@@ -325,11 +327,11 @@ Validates a coupon code and calculates the discount amount.
 
 ### `GET /api/products` (Admin)
 
-Same filtering as storefront but with `search` by name/brand and `category` by ID. Default limit 50.
+Same filtering as storefront but with `search` by name/brand and `category` by ID. Also supports the `audience` query param (`men` | `women` | `baby` | `unisex`). Default limit 50.
 
 ### `POST /api/products` (Admin)
 
-Creates a product with images and variants in a single transaction. Auto-generates a unique slug by appending a timestamp. If no images are provided, inserts `/placeholder.jpg` as primary image.
+Creates a product with images and variants in a single transaction. Auto-generates a unique slug by appending a timestamp. If no images are provided, inserts `/placeholder.jpg` as primary image. Accepts an `audience` field (defaults to `unisex` if missing or invalid).
 
 ### `GET /api/products/[id]` (Admin)
 
@@ -337,7 +339,7 @@ Returns product with all images and variants.
 
 ### `PUT /api/products/[id]` (Admin)
 
-Full update — replaces all images and variants (delete + re-insert in a transaction). Updates all product fields.
+Full update — replaces all images and variants (delete + re-insert in a transaction). Updates all product fields including `audience` (validated against `men` | `women` | `baby` | `unisex`; defaults to `unisex`).
 
 ### `DELETE /api/products/[id]` (Admin)
 

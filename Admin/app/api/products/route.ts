@@ -5,8 +5,12 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') || '';
   const category = searchParams.get('category') || '';
+  const audience = searchParams.get('audience') || '';
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = parseInt(searchParams.get('offset') || '0');
+
+  const ALLOWED_AUDIENCE = ['men', 'women', 'baby', 'unisex'];
+  const audienceFilter = audience && ALLOWED_AUDIENCE.includes(audience) ? audience : '';
 
   let query = `
     SELECT p.*, c.name as category_name,
@@ -25,6 +29,10 @@ export async function GET(req: NextRequest) {
     query += ' AND p.category_id = ?';
     params.push(parseInt(category));
   }
+  if (audienceFilter) {
+    query += ' AND p.audience = ?';
+    params.push(audienceFilter);
+  }
 
   query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
@@ -33,9 +41,12 @@ export async function GET(req: NextRequest) {
   const total = (
     db.prepare(`SELECT COUNT(*) as c FROM products p WHERE 1=1${
       search ? ' AND (p.name LIKE ? OR p.brand LIKE ?)' : ''
-    }${category ? ' AND p.category_id = ?' : ''}`).get(
+    }${category ? ' AND p.category_id = ?' : ''}${
+      audienceFilter ? ' AND p.audience = ?' : ''
+    }`).get(
       ...(search ? [`%${search}%`, `%${search}%`] : []),
-      ...(category ? [parseInt(category)] : [])
+      ...(category ? [parseInt(category)] : []),
+      ...(audienceFilter ? [audienceFilter] : [])
     ) as { c: number }
   ).c;
 
@@ -47,6 +58,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       name, description, price_min, price_max, brand, category_id,
+      audience = 'unisex',
       is_new_arrival = 0, is_featured = 0, free_delivery = 0,
       discount_label, stock = 100, notes, images = [], variants = [],
     } = body;
@@ -54,6 +66,9 @@ export async function POST(req: NextRequest) {
     if (!name || !price_min) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
+
+    const ALLOWED_AUDIENCE = ['men', 'women', 'baby', 'unisex'];
+    const audienceValue = ALLOWED_AUDIENCE.includes(audience) ? audience : 'unisex';
 
     const slug = name
       .toLowerCase()
@@ -66,12 +81,13 @@ export async function POST(req: NextRequest) {
 
     const insertProduct = db.transaction(() => {
       const res = db.prepare(`
-        INSERT INTO products (name, slug, description, price_min, price_max, brand, category_id,
+        INSERT INTO products (name, slug, description, price_min, price_max, brand, category_id, audience,
           is_new_arrival, is_featured, free_delivery, discount_label, stock, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         name, uniqueSlug, description || null, price_min, price_max || null,
-        brand || null, category_id || null, is_new_arrival ? 1 : 0,
+        brand || null, category_id || null, audienceValue,
+        is_new_arrival ? 1 : 0,
         is_featured ? 1 : 0, free_delivery ? 1 : 0, discount_label || null,
         stock, notes || null
       );

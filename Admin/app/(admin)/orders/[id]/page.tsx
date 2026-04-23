@@ -18,6 +18,7 @@ interface Order {
   order_number: string;
   full_name: string;
   phone: string;
+  email?: string;
   address: string;
   city: string;
   division: string;
@@ -127,6 +128,16 @@ export default function OrderDetailPage() {
             <div>
               <p className="text-gray-500 mb-0.5">Phone</p>
               <p className="font-medium">{order.phone}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-gray-500 mb-0.5">Email</p>
+              <p className="font-medium">
+                {order.email ? (
+                  <a href={`mailto:${order.email}`} className="hover:underline">{order.email}</a>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
+              </p>
             </div>
             <div className="col-span-2">
               <p className="text-gray-500 mb-0.5">Address</p>

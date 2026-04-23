@@ -8,6 +8,7 @@ import Link from 'next/link';
 interface Product {
   id: number;
   name: string;
+  slug?: string;
   category_name?: string;
   brand?: string;
   price_min: number;
@@ -88,7 +89,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
           {results.map((product) => (
             <Link
               key={product.id}
-              href={`/products/${product.id}`}
+              href={`/products/${product.slug || product.id}`}
               onClick={onClose}
               className="flex items-center gap-4 p-4 hover:bg-gray-50 border-b last:border-0 transition-colors"
             >

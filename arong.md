@@ -145,14 +145,28 @@ Two-section header rendered on every page:
 - **Logo:** "ARONG" / "Cosmetics" — links to `/`
 - **Desktop Nav Links:**
   - Home (`/`)
-  - Shop All (`/products`)
-  - Skincare (`/products?category=skincare`)
-  - Makeup (`/products?category=makeup`)
+  - **Shop All ▾** — dropdown (hover desktop / tap mobile) with a top "All Products" link plus a nested audience submenu. Hovering an audience reveals a flyout (opens to the right) listing every category from `/api/categories` (alphabetical):
+    - All Products (`/products`)
+    - Men ▸
+      - All Men (`/products?audience=men`)
+      - Accessories, Body Care, Fragrances, Hair Care, Makeup, Skincare → `/products?audience=men&category={slug}`
+    - Women ▸
+      - All Women (`/products?audience=women`)
+      - Accessories, Body Care, Fragrances, Hair Care, Makeup, Skincare → `/products?audience=women&category={slug}`
+    - Baby ▸
+      - All Baby (`/products?audience=baby`)
+      - Accessories, Body Care, Fragrances, Hair Care, Makeup, Skincare → `/products?audience=baby&category={slug}`
+    - Unisex ▸
+      - All Unisex (`/products?audience=unisex`)
+      - Accessories, Body Care, Fragrances, Hair Care, Makeup, Skincare → `/products?audience=unisex&category={slug}`
+  - **Products ▾** — dropdown listing all categories (fetched live from `GET /api/categories`, sorted A–Z). Each links to `/products?category={slug}`.
   - Track Order (`/track-order`)
+  - FAQ (`/faq`)
 - **Search icon:** Opens `SearchModal`
 - **Cart icon:** Shows item count badge, calls `openCart()` from context
-- **Mobile hamburger:** Toggles mobile menu with all nav links
+- **Mobile hamburger:** Toggles mobile menu. "Shop All" and "Products" appear as collapsible groups; under Shop All each audience (Men/Women/Baby/Unisex) is itself a collapsible row that reveals the same category list (chevron rotates on expand).
 - **Scroll shadow:** Adds `shadow-md` when page is scrolled > 10px (uses `scroll` event listener)
+- **Outside-click close:** Any open dropdown (and any open submenu) closes when the user clicks outside the navbar.
 
 ---
 
@@ -307,10 +321,17 @@ URL-driven state — all filters are reflected in the query string and read with
 
 | Control | URL Param | Options |
 |---|---|---|
+| Audience tabs | `audience` | All, Men, Women, Baby (pill row above category tabs) |
 | Search input | `search` | Free text, 400ms debounce |
 | Category tabs | `category` | All + each category slug |
 | Sort dropdown | `sort` | Latest, Price Low→High, Price High→Low, A–Z |
 | Per page | `limit` | 12, 24, 48 |
+
+**Page heading** updates based on the active audience:
+- No filter → `All Products`
+- `?audience=men` → `Men's Products`
+- `?audience=women` → `Women's Products`
+- `?audience=baby` → `Baby Products`
 
 **Pagination:**  
 Previous / Next buttons with page indicator. Offset calculated as `(page - 1) * limit`.

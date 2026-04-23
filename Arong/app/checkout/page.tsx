@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     full_name: '',
     phone: '',
+    email: '',
     address: '',
     division: '',
     city: '',
@@ -77,6 +78,8 @@ export default function CheckoutPage() {
     const errs: Record<string, string> = {};
     if (!form.full_name.trim()) errs.full_name = 'Full name is required';
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+      errs.email = 'Please enter a valid email address';
     if (!form.address.trim()) errs.address = 'Address is required';
     if (!form.division) errs.division = 'Please select your division';
     if (!form.city) errs.city = 'Please select your city';
@@ -182,6 +185,24 @@ export default function CheckoutPage() {
               />
               {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
             </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">
+              Email <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleInput}
+              placeholder="you@example.com"
+              autoComplete="email"
+              className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
+                errors.email ? 'border-red-400' : 'border-gray-300'
+              }`}
+            />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
           <div className="mb-4">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import ProductForm from '@/components/ProductForm';
+import ProductForm, { type ProductFormData } from '@/components/ProductForm';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
@@ -28,7 +28,7 @@ export default function EditProductPage() {
     });
   }, [params.id]);
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
+  const handleSubmit = async (data: ProductFormData) => {
     const res = await fetch(`/api/products/${params.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -70,6 +70,7 @@ export default function EditProductPage() {
     price_max: product.price_max as number || '',
     brand: product.brand as string || '',
     category_id: product.category_id as number || '',
+    audience: (product.audience as string) || 'unisex',
     is_new_arrival: product.is_new_arrival === 1,
     is_featured: product.is_featured === 1,
     free_delivery: product.free_delivery === 1,

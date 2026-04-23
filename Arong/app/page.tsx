@@ -1,6 +1,37 @@
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import Image from 'next/image';
+import {
+  Droplet,
+  Palette,
+  SprayCan,
+  Scissors,
+  Gem,
+  Bath,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react';
+
+// Map category slugs to real, meaningful icons + accent colors.
+// Falls back to a generic Sparkles icon if a new category slug appears.
+const CATEGORY_VISUAL: Record<
+  string,
+  { Icon: LucideIcon; bg: string; ring: string; iconColor: string }
+> = {
+  skincare:    { Icon: Droplet,  bg: 'bg-sky-50',    ring: 'group-hover:bg-sky-500',    iconColor: 'text-sky-600' },
+  makeup:      { Icon: Palette,  bg: 'bg-rose-50',   ring: 'group-hover:bg-rose-500',   iconColor: 'text-rose-600' },
+  fragrances:  { Icon: SprayCan, bg: 'bg-purple-50', ring: 'group-hover:bg-purple-500', iconColor: 'text-purple-600' },
+  'hair-care': { Icon: Scissors, bg: 'bg-amber-50',  ring: 'group-hover:bg-amber-500',  iconColor: 'text-amber-600' },
+  accessories: { Icon: Gem,      bg: 'bg-emerald-50',ring: 'group-hover:bg-emerald-500',iconColor: 'text-emerald-600' },
+  'body-care': { Icon: Bath,     bg: 'bg-pink-50',   ring: 'group-hover:bg-pink-500',   iconColor: 'text-pink-600' },
+};
+
+const FALLBACK_VISUAL = {
+  Icon: Sparkles,
+  bg: 'bg-gray-100',
+  ring: 'group-hover:bg-black',
+  iconColor: 'text-gray-700',
+};
 
 async function getProducts(params: Record<string, string>) {
   const qs = new URLSearchParams(params).toString();
@@ -66,20 +97,24 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {categories.map((cat: { id: number; name: string; slug: string }) => (
-            <Link
-              key={cat.id}
-              href={`/products?category=${cat.slug}`}
-              className="flex flex-col items-center gap-2 p-4 border border-gray-100 hover:border-black hover:bg-gray-50 transition-all group"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-              </div>
-              <span className="text-xs font-medium text-center">{cat.name}</span>
-            </Link>
-          ))}
+          {categories.map((cat: { id: number; name: string; slug: string }) => {
+            const visual = CATEGORY_VISUAL[cat.slug] || FALLBACK_VISUAL;
+            const { Icon, bg, ring, iconColor } = visual;
+            return (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.slug}`}
+                className="flex flex-col items-center gap-2 p-4 border border-gray-100 hover:border-black hover:bg-gray-50 transition-all group"
+              >
+                <div
+                  className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center ${ring} transition-colors`}
+                >
+                  <Icon className={`w-6 h-6 ${iconColor} group-hover:text-white transition-colors`} strokeWidth={1.75} />
+                </div>
+                <span className="text-xs font-medium text-center">{cat.name}</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

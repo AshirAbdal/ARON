@@ -26,19 +26,25 @@ export async function PUT(
     const body = await req.json();
     const {
       name, description, price_min, price_max, brand, category_id,
+      audience = 'unisex',
       is_new_arrival, is_featured, free_delivery, discount_label,
       stock, notes, images = [], variants = [],
     } = body;
 
+    const ALLOWED_AUDIENCE = ['men', 'women', 'baby', 'unisex'];
+    const audienceValue = ALLOWED_AUDIENCE.includes(audience) ? audience : 'unisex';
+
     db.prepare(`
       UPDATE products SET
         name = ?, description = ?, price_min = ?, price_max = ?,
-        brand = ?, category_id = ?, is_new_arrival = ?, is_featured = ?,
+        brand = ?, category_id = ?, audience = ?,
+        is_new_arrival = ?, is_featured = ?,
         free_delivery = ?, discount_label = ?, stock = ?, notes = ?
       WHERE id = ?
     `).run(
       name, description || null, price_min, price_max || null,
-      brand || null, category_id || null, is_new_arrival ? 1 : 0,
+      brand || null, category_id || null, audienceValue,
+      is_new_arrival ? 1 : 0,
       is_featured ? 1 : 0, free_delivery ? 1 : 0, discount_label || null,
       stock, notes || null, params.id
     );

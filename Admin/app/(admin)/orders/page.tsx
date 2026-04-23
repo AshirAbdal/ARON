@@ -97,18 +97,19 @@ export default function AdminOrdersPage() {
             No orders found{statusFilter ? ` with status "${statusFilter}"` : ''}.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Order</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Customer</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Location</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Total</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-5 py-3 font-medium text-gray-600">Date</th>
-                <th className="text-right px-5 py-3 font-medium text-gray-600">Actions</th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[720px]">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Order</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Customer</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Location</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Total</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Status</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Date</th>
+                  <th className="text-right px-5 py-3 font-medium text-gray-600">Actions</th>
+                </tr>
+              </thead>
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id} className="border-b last:border-0 hover:bg-gray-50">
@@ -152,6 +153,7 @@ export default function AdminOrdersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

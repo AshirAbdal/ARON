@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -9,6 +10,8 @@ import {
   Tag,
   ExternalLink,
   LogOut,
+  Menu,
+  X,
 } from 'lucide-react';
 
 const navItems = [
@@ -21,6 +24,24 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close drawer when route changes
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll while drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -28,16 +49,25 @@ export default function Sidebar() {
     router.refresh();
   }
 
-  return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-black text-white flex flex-col z-30">
+  const SidebarBody = (
+    <>
       {/* Logo */}
-      <div className="p-6 border-b border-white/10">
-        <p className="text-xl font-bold tracking-wider uppercase">ARON</p>
-        <p className="text-xs text-gray-400 mt-0.5">Admin Panel</p>
+      <div className="p-6 border-b border-white/10 flex items-center justify-between">
+        <div>
+          <p className="text-xl font-bold tracking-wider uppercase">ARON</p>
+          <p className="text-xs text-gray-400 mt-0.5">Admin Panel</p>
+        </div>
+        <button
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+          className="md:hidden p-1 text-gray-300 hover:text-white"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -77,6 +107,43 @@ export default function Sidebar() {
           Logout
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar with hamburger */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-black text-white flex items-center justify-between px-4 h-14 shadow">
+        <button
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+          className="p-1 hover:bg-white/10 rounded"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <p className="text-sm font-bold tracking-wider uppercase">ARON Admin</p>
+        <span className="w-7" aria-hidden />
+      </div>
+
+      {/* Desktop persistent sidebar */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-black text-white flex-col z-30">
+        {SidebarBody}
+      </aside>
+
+      {/* Mobile drawer + backdrop */}
+      {mobileOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+          <aside className="md:hidden fixed left-0 top-0 h-full w-64 max-w-[80vw] bg-black text-white flex flex-col z-50 shadow-xl">
+            {SidebarBody}
+          </aside>
+        </>
+      )}
+    </>
   );
 }
+

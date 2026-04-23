@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      full_name, phone, address, city, division, notes,
+      full_name, phone, email, address, city, division, notes,
       coupon_code, items, payment_method = 'cash_on_delivery',
     } = body;
 
@@ -58,11 +58,11 @@ export async function POST(req: NextRequest) {
 
     const placeOrder = db.transaction(() => {
       const orderResult = db.prepare(`
-        INSERT INTO orders (order_number, full_name, phone, address, city, division,
+        INSERT INTO orders (order_number, full_name, phone, email, address, city, division,
           subtotal, shipping_cost, discount, total, payment_method, notes, coupon_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        order_number, full_name, phone, address, city, division,
+        order_number, full_name, phone, email || null, address, city, division,
         subtotal, shipping_cost, discount, total, payment_method,
         notes || null, coupon_code || null
       );

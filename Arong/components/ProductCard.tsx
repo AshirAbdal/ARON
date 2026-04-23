@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useState } from 'react';
 
@@ -27,7 +28,8 @@ interface Product {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addItem, openCart } = useCart();
+  const { addItem, addItemSilent } = useCart();
+  const router = useRouter();
   const [adding, setAdding] = useState(false);
 
   const image = product.primary_image || '/placeholder.jpg';
@@ -57,7 +59,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({
+    addItemSilent({
       product_id: product.id,
       product_name: product.name,
       variant_name: defaultVariant?.name,
@@ -65,11 +67,11 @@ export default function ProductCard({ product }: { product: Product }) {
       quantity: 1,
       image,
     });
-    window.location.href = '/checkout';
+    router.push('/checkout');
   };
 
   return (
-    <Link href={`/products/${product.id}`} className="group block">
+    <Link href={`/products/${product.slug || product.id}`} className="group block">
       <div className="bg-white border border-gray-100 rounded-sm overflow-hidden hover:shadow-md transition-shadow">
         {/* Image container */}
         <div className="relative aspect-square overflow-hidden bg-gray-50">

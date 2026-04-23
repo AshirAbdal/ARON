@@ -124,6 +124,7 @@ Shared reusable form component used by both the **Add Product** and **Edit Produ
 | Max Price (৳) | number | Optional — for variant price ranges |
 | Brand | text | Brand name |
 | Category | select | Dropdown of all categories |
+| Audience | select | `Unisex` (default), `Men`, `Women`, `Baby` |
 | Stock | number | Inventory count (default: 100) |
 | Discount Label | text | Badge text e.g. "10% OFF" |
 | Notes | textarea | Internal admin notes |
@@ -183,7 +184,8 @@ Shows the 10 most recent orders with columns: Order #, Customer, Total, Status b
 - Displays all products in a data table
 - **Search bar:** Filters by product name or brand (client-side fetch on input change)
 - **Category filter:** Dropdown to filter by category
-- Each row shows: thumbnail image, name, brand, category, price range, stock, status badges (New/Featured), Edit and Delete action buttons
+- **Audience filter:** Dropdown to filter by `All Audiences` / `Men` / `Women` / `Baby` / `Unisex`
+- Each row shows: thumbnail image, name, brand, category, audience, price range, stock, status badges (New/Featured), Edit and Delete action buttons
 - **Add Product** button links to `/products/new`
 - **Delete:** Calls `DELETE /api/products/[id]`, confirms with `window.confirm()` before proceeding, refreshes the list on success
 

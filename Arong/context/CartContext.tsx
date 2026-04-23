@@ -15,6 +15,7 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
+  addItemSilent: (item: CartItem) => void;
   removeItem: (product_id: number, variant_name?: string) => void;
   updateQuantity: (product_id: number, variant_name: string | undefined, qty: number) => void;
   clearCart: () => void;
@@ -65,6 +66,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(true);
   };
 
+  // Same as addItem but does NOT open the cart sidebar.
+  // Used by "Buy Now" so the page can navigate straight to /checkout.
+  const addItemSilent = (newItem: CartItem) => {
+    setItems((prev) => {
+      const existing = prev.find(
+        (i) => i.product_id === newItem.product_id && i.variant_name === newItem.variant_name
+      );
+      if (existing) {
+        return prev.map((i) =>
+          i.product_id === newItem.product_id && i.variant_name === newItem.variant_name
+            ? { ...i, quantity: i.quantity + newItem.quantity }
+            : i
+        );
+      }
+      return [...prev, newItem];
+    });
+  };
+
   const removeItem = (product_id: number, variant_name?: string) => {
     setItems((prev) =>
       prev.filter(
@@ -101,6 +120,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       value={{
         items,
         addItem,
+        addItemSilent,
         removeItem,
         updateQuantity,
         clearCart,

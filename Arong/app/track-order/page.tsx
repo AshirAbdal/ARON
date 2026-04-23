@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Package } from 'lucide-react';
 
 interface OrderItem {
@@ -37,21 +38,22 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function TrackOrderPage() {
+  const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+  const autoLookupRef = useRef(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!orderId.trim()) return;
+  const lookupOrder = async (id: string) => {
+    if (!id.trim()) return;
     setLoading(true);
     setError('');
     setSearched(true);
     try {
-      const res = await fetch(`/api/orders/${encodeURIComponent(orderId.trim())}`);
+      const res = await fetch(`/api/orders/${encodeURIComponent(id.trim())}`);
       if (!res.ok) {
         setOrder(null);
         setError('Order not found. Please check your order ID.');
@@ -65,6 +67,22 @@ export default function TrackOrderPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-lookup if ?id= or ?order= is provided in the URL
+  useEffect(() => {
+    if (autoLookupRef.current) return;
+    const fromUrl = searchParams.get('id') || searchParams.get('order') || '';
+    if (fromUrl) {
+      autoLookupRef.current = true;
+      setOrderId(fromUrl);
+      lookupOrder(fromUrl);
+    }
+  }, [searchParams]);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await lookupOrder(orderId);
   };
 
   const statusSteps = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];

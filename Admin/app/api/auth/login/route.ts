@@ -16,7 +16,7 @@ async function generateToken(secret: string): Promise<string> {
     key,
     encoder.encode('arong-admin-authenticated')
   );
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+  return btoa(String.fromCharCode(...Array.from(new Uint8Array(signature))));
 }
 
 export async function POST(req: NextRequest) {

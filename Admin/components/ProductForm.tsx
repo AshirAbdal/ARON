@@ -26,6 +26,7 @@ interface ProductFormData {
   price_max: number | string;
   brand: string;
   category_id: number | string;
+  audience: string;
   is_new_arrival: boolean;
   is_featured: boolean;
   free_delivery: boolean;
@@ -35,6 +36,8 @@ interface ProductFormData {
   images: ProductImage[];
   variants: Variant[];
 }
+
+export type { ProductFormData };
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -56,6 +59,7 @@ export default function ProductForm({
     price_max: initialData?.price_max || '',
     brand: initialData?.brand || '',
     category_id: initialData?.category_id || '',
+    audience: initialData?.audience || 'unisex',
     is_new_arrival: initialData?.is_new_arrival || false,
     is_featured: initialData?.is_featured || false,
     free_delivery: initialData?.free_delivery || false,
@@ -220,6 +224,25 @@ export default function ProductForm({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Audience</label>
+            <select
+              aria-label="Select audience"
+              name="audience"
+              value={form.audience}
+              onChange={handleInput}
+              className="w-full max-w-xs border border-gray-300 px-3 py-2 text-sm rounded focus:outline-none focus:border-black"
+            >
+              <option value="unisex">Unisex</option>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+              <option value="baby">Baby</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              Who is this product for? Shows under the matching navbar group.
+            </p>
           </div>
         </div>
       </div>

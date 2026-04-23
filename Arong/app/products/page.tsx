@@ -35,6 +35,7 @@ export default function ShopAllPage() {
   const [loading, setLoading] = useState(true);
 
   const category = searchParams.get('category') || '';
+  const audience = searchParams.get('audience') || '';
   const searchQuery = searchParams.get('q') || '';
   const sort = searchParams.get('sort') || 'latest';
   const perPage = parseInt(searchParams.get('per') || '20');
@@ -50,6 +51,7 @@ export default function ShopAllPage() {
         offset: String((page - 1) * perPage),
         sort,
         ...(category && { category }),
+        ...(audience && { audience }),
         ...(searchQuery && { search: searchQuery }),
       });
       const res = await fetch(`/api/products?${params}`);
@@ -61,7 +63,7 @@ export default function ShopAllPage() {
     } finally {
       setLoading(false);
     }
-  }, [category, searchQuery, sort, perPage, page]);
+  }, [category, audience, searchQuery, sort, perPage, page]);
 
   useEffect(() => {
     fetch('/api/categories')

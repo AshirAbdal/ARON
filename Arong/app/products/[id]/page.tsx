@@ -39,7 +39,7 @@ interface ProductDetail {
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, addItemSilent } = useCart();
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -120,35 +120,16 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
-    const newItem = {
+    // Use addItemSilent so the React context state stays in sync with
+    // localStorage AND the cart sidebar does not flash open before navigation.
+    addItemSilent({
       product_id: product.id,
       product_name: product.name,
       variant_name: selectedVariant?.name,
       price,
       quantity,
       image: displayImage,
-    };
-
-    // Write directly to localStorage — bypasses React state + useEffect lag
-    // so checkout always reads the correct cart on mount.
-    // Does NOT call addItem() so the cart sidebar never flashes open.
-    try {
-      const saved = localStorage.getItem('arong-cart');
-      const current: typeof newItem[] = saved ? JSON.parse(saved) : [];
-      const existing = current.find(
-        (i) => i.product_id === newItem.product_id && i.variant_name === newItem.variant_name
-      );
-      const updated = existing
-        ? current.map((i) =>
-            i.product_id === newItem.product_id && i.variant_name === newItem.variant_name
-              ? { ...i, quantity: i.quantity + newItem.quantity }
-              : i
-          )
-        : [...current, newItem];
-      localStorage.setItem('arong-cart', JSON.stringify(updated));
-    } catch {}
-
-    // Client-side navigation — no full page reload, no flash
+    });
     router.push('/checkout');
   };
 
