@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js build output
+.next/
+**/.next/
+out/
+**/out/
+
+# Environment variables (keep secrets out of git)
+.env
+.env.local
+.env.*.local
+**/.env.local
+
+# SQLite database (contains real data)
+db/arong.db
+db/*.db
+db/*.db-shm
+db/*.db-wal
+
+# Uploaded images (large binary files)
+Arong/public/uploads/*
+!Arong/public/uploads/.gitkeep
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo
