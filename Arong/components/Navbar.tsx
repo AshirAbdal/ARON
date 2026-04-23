@@ -65,8 +65,8 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+          <div className="relative flex items-center justify-between h-16">
+            {/* Logo — left */}
             <Link href="/" className="flex flex-col leading-none">
               <span className="text-2xl font-bold tracking-wide uppercase">ARON</span>
               <span className="text-[10px] tracking-[0.3em] text-gray-500 uppercase">
@@ -74,13 +74,13 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-8">
+            {/* Desktop nav — absolutely centered relative to full header */}
+            <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors relative group"
+                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
                 >
                   {link.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full" />
@@ -88,7 +88,7 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Icons */}
+            {/* Icons — right */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSearchOpen(true)}

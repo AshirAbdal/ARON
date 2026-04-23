@@ -19,7 +19,7 @@ const DIVISIONS: Record<string, string[]> = {
 };
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart, updateQuantity, removeItem } = useCart();
+  const { items, subtotal, clearCart, updateQuantity, removeItem, hydrated } = useCart();
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -119,6 +119,14 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  if (!hydrated) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <p className="text-gray-400 text-sm">Loading cart...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

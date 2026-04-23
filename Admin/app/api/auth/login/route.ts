@@ -1,7 +1,23 @@
-import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 const COOKIE_NAME = 'arong-admin-session';
+
+async function generateToken(secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode('arong-admin-authenticated')
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -23,10 +39,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Generate the same HMAC token that middleware will verify
-  const token = createHmac('sha256', secret)
-    .update('arong-admin-authenticated')
-    .digest('base64');
+  const token = await generateToken(secret);
 
   const response = NextResponse.json({ success: true });
   response.cookies.set(COOKIE_NAME, token, {

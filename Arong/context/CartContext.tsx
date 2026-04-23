@@ -23,6 +23,7 @@ interface CartContextType {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
+  hydrated: boolean;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -30,6 +31,7 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('arong-cart');
@@ -38,11 +40,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems(JSON.parse(saved));
       } catch {}
     }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     localStorage.setItem('arong-cart', JSON.stringify(items));
-  }, [items]);
+  }, [items, hydrated]);
 
   const addItem = (newItem: CartItem) => {
     setItems((prev) => {
@@ -105,6 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isOpen,
         openCart: () => setIsOpen(true),
         closeCart: () => setIsOpen(false),
+        hydrated,
       }}
     >
       {children}
