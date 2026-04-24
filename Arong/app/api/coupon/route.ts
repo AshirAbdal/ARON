@@ -1,42 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { findUsableCoupon, evaluateCoupon, type CartItemInput } from '@/lib/coupons';
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get('code');
-  const subtotal = parseFloat(searchParams.get('subtotal') || '0');
+/**
+ * Preview coupon validity for a given cart.
+ *
+ * Body: { code: string, items: [{ product_id, price, quantity }] }
+ *
+ * (Kept POST so the cart payload can travel in the body.)
+ */
+export async function POST(req: NextRequest) {
+  let body: { code?: string; items?: CartItemInput[] };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 
+  const code = (body.code || '').trim();
   if (!code) {
     return NextResponse.json({ error: 'Coupon code required' }, { status: 400 });
   }
 
-  const coupon = db
-    .prepare(
-      `SELECT * FROM coupons WHERE code = ? AND is_active = 1
-       AND (max_uses IS NULL OR used_count < max_uses)
-       AND (expires_at IS NULL OR expires_at > datetime('now'))`
-    )
-    .get(code.toUpperCase()) as {
-    id: number;
-    discount_type: string;
-    discount_value: number;
-    min_order: number;
-  } | undefined;
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (items.length === 0) {
+    return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
+  }
 
+  // Sanitize items: only keep numeric product_id, price, quantity
+  const safeItems: CartItemInput[] = items
+    .map((it) => ({
+      product_id:
+        typeof it.product_id === 'number' && Number.isInteger(it.product_id)
+          ? it.product_id
+          : null,
+      price: Number(it.price) || 0,
+      quantity: Math.max(1, Math.floor(Number(it.quantity) || 0)),
+    }))
+    .filter((it) => it.price > 0 && it.quantity > 0);
+
+  const coupon = findUsableCoupon(code);
   if (!coupon) {
     return NextResponse.json({ error: 'Invalid or expired coupon' }, { status: 404 });
   }
-  if (subtotal < coupon.min_order) {
-    return NextResponse.json(
-      { error: `Minimum order amount is ৳${coupon.min_order} for this coupon` },
-      { status: 400 }
-    );
+
+  const result = evaluateCoupon(coupon, safeItems);
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  const discount =
-    coupon.discount_type === 'percentage'
-      ? Math.round((subtotal * coupon.discount_value) / 100)
-      : coupon.discount_value;
-
-  return NextResponse.json({ valid: true, discount, coupon });
+  return NextResponse.json({
+    valid: true,
+    discount: result.discount,
+    eligible_subtotal: result.eligibleSubtotal,
+    coupon: {
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      scope: coupon.scope,
+      apply_to: coupon.apply_to,
+    },
+  });
 }

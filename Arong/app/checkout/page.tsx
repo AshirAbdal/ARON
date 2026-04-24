@@ -56,9 +56,18 @@ export default function CheckoutPage() {
   const handleCoupon = async () => {
     if (!couponCode.trim()) return;
     try {
-      const res = await fetch(
-        `/api/coupon?code=${encodeURIComponent(couponCode)}&subtotal=${subtotal}`
-      );
+      const res = await fetch('/api/coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          items: items.map((i) => ({
+            product_id: i.product_id,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+        }),
+      });
       const data = await res.json();
       if (res.ok && data.valid) {
         setDiscount(data.discount);

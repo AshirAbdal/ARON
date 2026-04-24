@@ -8,6 +8,8 @@ import {
   Package,
   ShoppingBag,
   Tag,
+  Ticket,
+  Megaphone,
   ExternalLink,
   LogOut,
   Menu,
@@ -19,6 +21,8 @@ const navItems = [
   { href: '/products', label: 'Products', icon: Package },
   { href: '/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/categories', label: 'Categories', icon: Tag },
+  { href: '/coupons', label: 'Coupons', icon: Ticket },
+  { href: '/announcements', label: 'Announcements', icon: Megaphone },
 ];
 
 export default function Sidebar() {

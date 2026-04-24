@@ -2,36 +2,28 @@ import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Droplet,
-  Palette,
+  Droplets,
+  Brush,
   SprayCan,
-  Scissors,
-  Gem,
-  Bath,
+  Wind,
   Sparkles,
+  Flower2,
   type LucideIcon,
 } from 'lucide-react';
 
-// Map category slugs to real, meaningful icons + accent colors.
-// Falls back to a generic Sparkles icon if a new category slug appears.
-const CATEGORY_VISUAL: Record<
-  string,
-  { Icon: LucideIcon; bg: string; ring: string; iconColor: string }
-> = {
-  skincare:    { Icon: Droplet,  bg: 'bg-sky-50',    ring: 'group-hover:bg-sky-500',    iconColor: 'text-sky-600' },
-  makeup:      { Icon: Palette,  bg: 'bg-rose-50',   ring: 'group-hover:bg-rose-500',   iconColor: 'text-rose-600' },
-  fragrances:  { Icon: SprayCan, bg: 'bg-purple-50', ring: 'group-hover:bg-purple-500', iconColor: 'text-purple-600' },
-  'hair-care': { Icon: Scissors, bg: 'bg-amber-50',  ring: 'group-hover:bg-amber-500',  iconColor: 'text-amber-600' },
-  accessories: { Icon: Gem,      bg: 'bg-emerald-50',ring: 'group-hover:bg-emerald-500',iconColor: 'text-emerald-600' },
-  'body-care': { Icon: Bath,     bg: 'bg-pink-50',   ring: 'group-hover:bg-pink-500',   iconColor: 'text-pink-600' },
+// Map category slugs to cosmetics-appropriate icons.
+// Visual style stays consistent with the site: neutral white tile,
+// black icon, rose-500 accent on hover (matches the "New" badge).
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  skincare:    Droplets,  // serums, moisturizers
+  makeup:      Brush,     // makeup brush
+  fragrances:  SprayCan,  // perfume / spray
+  'hair-care': Wind,      // flowing hair
+  accessories: Sparkles,  // beauty accessories
+  'body-care': Flower2,   // botanical body care
 };
 
-const FALLBACK_VISUAL = {
-  Icon: Sparkles,
-  bg: 'bg-gray-100',
-  ring: 'group-hover:bg-black',
-  iconColor: 'text-gray-700',
-};
+const FALLBACK_ICON: LucideIcon = Sparkles;
 
 async function getProducts(params: Record<string, string>) {
   const qs = new URLSearchParams(params).toString();
@@ -98,20 +90,22 @@ export default async function HomePage() {
         <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {categories.map((cat: { id: number; name: string; slug: string }) => {
-            const visual = CATEGORY_VISUAL[cat.slug] || FALLBACK_VISUAL;
-            const { Icon, bg, ring, iconColor } = visual;
+            const Icon = CATEGORY_ICON[cat.slug] || FALLBACK_ICON;
             return (
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
-                className="flex flex-col items-center gap-2 p-4 border border-gray-100 hover:border-black hover:bg-gray-50 transition-all group"
+                className="flex flex-col items-center gap-2 p-4 border border-gray-200 hover:border-black transition-colors group"
               >
-                <div
-                  className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center ${ring} transition-colors`}
-                >
-                  <Icon className={`w-6 h-6 ${iconColor} group-hover:text-white transition-colors`} strokeWidth={1.75} />
+                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors">
+                  <Icon
+                    className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors"
+                    strokeWidth={1.75}
+                  />
                 </div>
-                <span className="text-xs font-medium text-center">{cat.name}</span>
+                <span className="text-xs font-medium text-center group-hover:text-rose-600 transition-colors">
+                  {cat.name}
+                </span>
               </Link>
             );
           })}

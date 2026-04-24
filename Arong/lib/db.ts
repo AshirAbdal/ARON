@@ -119,6 +119,42 @@ try {
   // column already exists — safe to ignore
 }
 
+// Migration: coupon scoping (idempotent)
+try {
+  db.exec(`ALTER TABLE coupons ADD COLUMN scope TEXT NOT NULL DEFAULT 'cart'`);
+} catch {
+  // column already exists — safe to ignore
+}
+try {
+  db.exec(`ALTER TABLE coupons ADD COLUMN apply_to TEXT NOT NULL DEFAULT 'eligible'`);
+} catch {
+  // column already exists — safe to ignore
+}
+db.exec(`
+  CREATE TABLE IF NOT EXISTS coupon_targets (
+    coupon_id   INTEGER NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id   INTEGER NOT NULL,
+    PRIMARY KEY (coupon_id, target_type, target_id),
+    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_coupon_targets_coupon ON coupon_targets(coupon_id);
+`);
+
+// Announcements (top-bar marquee messages managed from admin)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    starts_at DATETIME,
+    ends_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE INDEX IF NOT EXISTS idx_announcements_active ON announcements(is_active);
+`);
+
 // Seed initial data if empty
 const catCount = (db.prepare('SELECT COUNT(*) as c FROM categories').get() as { c: number }).c;
 if (catCount === 0) {

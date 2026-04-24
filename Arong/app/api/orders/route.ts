@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { findUsableCoupon, evaluateCoupon, type CartItemInput } from '@/lib/coupons';
 
 function generateOrderNumber(): string {
   const prefix = 'ARG';
@@ -32,31 +33,55 @@ export async function POST(req: NextRequest) {
     const isSherpur = city && city.toLowerCase() === 'sherpur';
     const shipping_cost = isSherpur ? 0 : 120;
 
-    // Coupon
-    let discount = 0;
-    let validCoupon = null;
-    if (coupon_code) {
-      validCoupon = db
-        .prepare(
-          `SELECT * FROM coupons WHERE code = ? AND is_active = 1
-           AND (max_uses IS NULL OR used_count < max_uses)
-           AND (expires_at IS NULL OR expires_at > datetime('now'))`
-        )
-        .get(coupon_code.toUpperCase()) as { id: number; discount_type: string; discount_value: number; min_order: number } | undefined;
-
-      if (validCoupon && subtotal >= validCoupon.min_order) {
-        if (validCoupon.discount_type === 'percentage') {
-          discount = Math.round((subtotal * validCoupon.discount_value) / 100);
-        } else {
-          discount = validCoupon.discount_value;
-        }
-      }
-    }
-
-    const total = subtotal + shipping_cost - discount;
     const order_number = generateOrderNumber();
+    const normalizedCoupon = coupon_code ? String(coupon_code).toUpperCase() : null;
 
     const placeOrder = db.transaction(() => {
+      // Re-validate the coupon server-side using the actual cart and the
+      // scoping rules (cart / category / product). The atomic reserve UPDATE
+      // guarantees `used_count < max_uses` even under concurrent placement.
+      let discount = 0;
+      let appliedCoupon: string | null = null;
+
+      if (normalizedCoupon) {
+        const coupon = findUsableCoupon(normalizedCoupon);
+        if (coupon) {
+          const cartForEval: CartItemInput[] = items.map(
+            (it: { product_id?: number | null; price: number; quantity: number }) => ({
+              product_id:
+                typeof it.product_id === 'number' && Number.isInteger(it.product_id)
+                  ? it.product_id
+                  : null,
+              price: Number(it.price) || 0,
+              quantity: Math.max(1, Math.floor(Number(it.quantity) || 0)),
+            })
+          );
+          const evalResult = evaluateCoupon(coupon, cartForEval);
+
+          if (evalResult.ok && evalResult.discount > 0) {
+            // Atomic reserve: only increments if a slot is still available.
+            const reserve = db
+              .prepare(
+                `UPDATE coupons
+                    SET used_count = used_count + 1
+                  WHERE id = ?
+                    AND is_active = 1
+                    AND (expires_at IS NULL OR expires_at > datetime('now'))
+                    AND (max_uses IS NULL OR used_count < max_uses)`
+              )
+              .run(coupon.id);
+
+            if (reserve.changes === 1) {
+              discount = evalResult.discount;
+              if (discount > subtotal) discount = subtotal;
+              appliedCoupon = normalizedCoupon;
+            }
+          }
+        }
+      }
+
+      const total = subtotal + shipping_cost - discount;
+
       const orderResult = db.prepare(`
         INSERT INTO orders (order_number, full_name, phone, email, address, city, division,
           subtotal, shipping_cost, discount, total, payment_method, notes, coupon_code)
@@ -64,7 +89,7 @@ export async function POST(req: NextRequest) {
       `).run(
         order_number, full_name, phone, email || null, address, city, division,
         subtotal, shipping_cost, discount, total, payment_method,
-        notes || null, coupon_code || null
+        notes || null, appliedCoupon
       );
 
       const orderId = orderResult.lastInsertRowid;
@@ -85,16 +110,10 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (validCoupon) {
-        db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?').run(
-          validCoupon.id
-        );
-      }
-
-      return orderId;
+      return { orderId, total };
     });
 
-    const orderId = placeOrder();
+    const { orderId, total } = placeOrder();
     return NextResponse.json({ order_number, order_id: orderId, total }, { status: 201 });
   } catch (err) {
     console.error(err);
