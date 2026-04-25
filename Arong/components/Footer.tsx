@@ -49,7 +49,12 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-sm mb-4">Contact</h3>
             <div className="space-y-2">
-              <p className="text-sm text-gray-600">arongbd@gmail.com</p>
+              <a
+                href="mailto:arononlineshopinfo@gmail.com"
+                className="block text-sm text-gray-600 hover:text-black transition-colors break-all"
+              >
+                arononlineshopinfo@gmail.com
+              </a>
               <p className="text-sm text-gray-600">Call us: +880 1700-000000</p>
             </div>
           </div>

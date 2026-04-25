@@ -37,6 +37,7 @@ export default function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState('');
   const [couponValid, setCouponValid] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const cities = form.division ? DIVISIONS[form.division] || [] : [];
@@ -87,11 +88,15 @@ export default function CheckoutPage() {
     const errs: Record<string, string> = {};
     if (!form.full_name.trim()) errs.full_name = 'Full name is required';
     if (!form.phone.trim()) errs.phone = 'Phone number is required';
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+    if (!form.email.trim()) {
+      errs.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       errs.email = 'Please enter a valid email address';
+    }
     if (!form.address.trim()) errs.address = 'Address is required';
     if (!form.division) errs.division = 'Please select your division';
     if (!form.city) errs.city = 'Please select your city';
+    if (!consent) errs.consent = 'You must agree to the Terms and Privacy Policy to place an order';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -198,7 +203,7 @@ export default function CheckoutPage() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">
-              Email <span className="text-gray-400 font-normal">(optional)</span>
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -207,10 +212,12 @@ export default function CheckoutPage() {
               onChange={handleInput}
               placeholder="you@example.com"
               autoComplete="email"
+              required
               className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
                 errors.email ? 'border-red-400' : 'border-gray-300'
               }`}
             />
+            <p className="text-xs text-gray-500 mt-1">We&apos;ll send your order confirmation and invoice to this email.</p>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
@@ -308,11 +315,7 @@ export default function CheckoutPage() {
                 <div key={`${item.product_id}-${item.variant_name}`} className="flex gap-3">
                   <div className="relative w-16 h-16 flex-shrink-0 bg-gray-50 border">
                     <Image
-                      src={
-                        item.image.startsWith('http')
-                          ? item.image
-                          : `http://localhost:3000${item.image}`
-                      }
+                      src={item.image}
                       alt={item.product_name}
                       fill
                       className="object-cover"
@@ -429,21 +432,37 @@ export default function CheckoutPage() {
               </label>
             </div>
 
-            <p className="text-xs text-gray-500 mt-3">
-              Before placing the order, please do read our{' '}
-              <Link href="/terms" className="underline">
-                Terms and Conditions
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy-policy" className="underline">
-                Privacy Policy
-              </Link>
-              .
-            </p>
+            <div className="mt-4">
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => {
+                    setConsent(e.target.checked);
+                    if (e.target.checked) setErrors((prev) => ({ ...prev, consent: '' }));
+                  }}
+                  className="mt-0.5 accent-black"
+                />
+                <span className="text-xs text-gray-600 leading-relaxed">
+                  I have read and agree to the{' '}
+                  <Link href="/terms" className="underline">
+                    Terms and Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy-policy" className="underline">
+                    Privacy Policy
+                  </Link>
+                  , and consent to receiving order updates by email.
+                </span>
+              </label>
+              {errors.consent && (
+                <p className="text-xs text-red-500 mt-1">{errors.consent}</p>
+              )}
+            </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !consent}
               className="w-full mt-4 bg-black text-white py-3.5 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Placing Order...' : 'Place Order'}

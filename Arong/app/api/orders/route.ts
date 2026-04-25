@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { findUsableCoupon, evaluateCoupon, type CartItemInput } from '@/lib/coupons';
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email';
+import { sendWhatsAppOrderNotification } from '@/lib/whatsapp';
 
 function generateOrderNumber(): string {
   const prefix = 'ARG';
@@ -110,10 +112,54 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      return { orderId, total };
+      return { orderId, total, subtotal, shipping_cost, discount, appliedCoupon };
     });
 
-    const { orderId, total } = placeOrder();
+    const { orderId, total, subtotal: finalSubtotal, shipping_cost: finalShipping, discount: finalDiscount, appliedCoupon } = placeOrder();
+
+    const orderItemsForNotify = items.map(
+      (it: { product_name: string; variant_name?: string | null; quantity: number; price: number }) => ({
+        product_name: it.product_name,
+        variant_name: it.variant_name || null,
+        quantity: it.quantity,
+        price: it.price,
+      })
+    );
+
+    const baseOrderPayload = {
+      order_number,
+      full_name,
+      phone,
+      address,
+      city,
+      division,
+      notes: notes || null,
+      payment_method,
+      items: orderItemsForNotify,
+      subtotal: finalSubtotal,
+      shipping_cost: finalShipping,
+      discount: finalDiscount,
+      total,
+      coupon_code: appliedCoupon,
+    };
+
+    // Fire-and-forget customer confirmation email (non-blocking).
+    if (email) {
+      sendOrderConfirmationEmail({ ...baseOrderPayload, to: email }).catch((err) => {
+        console.error('[orders] Failed to send customer email:', err);
+      });
+    }
+
+    // Fire-and-forget admin email notification (non-blocking).
+    sendAdminOrderNotification({ ...baseOrderPayload, to: email || '' }).catch((err) => {
+      console.error('[orders] Failed to send admin email:', err);
+    });
+
+    // Fire-and-forget WhatsApp admin notification (non-blocking).
+    sendWhatsAppOrderNotification({ ...baseOrderPayload, email: email || null }).catch((err) => {
+      console.error('[orders] Failed to send WhatsApp:', err);
+    });
+
     return NextResponse.json({ order_number, order_id: orderId, total }, { status: 201 });
   } catch (err) {
     console.error(err);

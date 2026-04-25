@@ -76,7 +76,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Image container */}
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           <Image
-            src={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+            src={image}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"

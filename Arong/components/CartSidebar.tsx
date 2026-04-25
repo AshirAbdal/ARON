@@ -67,7 +67,7 @@ export default function CartSidebar() {
               <div key={`${item.product_id}-${item.variant_name}`} className="flex gap-3">
                 <div className="relative w-20 h-20 flex-shrink-0 bg-gray-50 border">
                   <Image
-                    src={item.image.startsWith('http') ? item.image : `http://localhost:3000${item.image}`}
+                    src={item.image}
                     alt={item.product_name}
                     fill
                     className="object-cover"

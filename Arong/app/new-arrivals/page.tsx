@@ -1,7 +1,8 @@
 import ProductCard from '@/components/ProductCard';
+import { getBaseUrl } from '@/lib/baseUrl';
 
 async function getNewArrivals() {
-  const res = await fetch('http://localhost:3000/api/products?new_arrival=1&limit=50', {
+  const res = await fetch(`${getBaseUrl()}/api/products?new_arrival=1&limit=50`, {
     cache: 'no-store',
   });
   if (!res.ok) return { products: [], total: 0 };

@@ -148,7 +148,7 @@ export default function ProductDetailPage() {
         <div>
           <div className="relative aspect-square bg-gray-50 border overflow-hidden mb-3">
             <Image
-              src={displayImage.startsWith('http') ? displayImage : `http://localhost:3000${displayImage}`}
+              src={displayImage}
               alt={product.name}
               fill
               className="object-cover"
@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
                   }`}
                 >
                   <Image
-                    src={img.image_url.startsWith('http') ? img.image_url : `http://localhost:3000${img.image_url}`}
+                    src={img.image_url}
                     alt=""
                     fill
                     className="object-cover"

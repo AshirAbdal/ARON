@@ -95,13 +95,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
             >
               <div className="relative w-14 h-14 flex-shrink-0 bg-gray-100">
                 <Image
-                  src={
-                    product.primary_image
-                      ? product.primary_image.startsWith('http')
-                        ? product.primary_image
-                        : `http://localhost:3000${product.primary_image}`
-                      : '/placeholder.jpg'
-                  }
+                  src={product.primary_image || '/placeholder.jpg'}
                   alt={product.name}
                   fill
                   className="object-cover"

@@ -1,6 +1,7 @@
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getBaseUrl } from '@/lib/baseUrl';
 import {
   Droplets,
   Brush,
@@ -27,7 +28,7 @@ const FALLBACK_ICON: LucideIcon = Sparkles;
 
 async function getProducts(params: Record<string, string>) {
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`http://localhost:3000/api/products?${qs}`, {
+  const res = await fetch(`${getBaseUrl()}/api/products?${qs}`, {
     cache: 'no-store',
   });
   if (!res.ok) return { products: [], total: 0 };
@@ -35,7 +36,7 @@ async function getProducts(params: Record<string, string>) {
 }
 
 async function getCategories() {
-  const res = await fetch('http://localhost:3000/api/categories', { cache: 'no-store' });
+  const res = await fetch(`${getBaseUrl()}/api/categories`, { cache: 'no-store' });
   if (!res.ok) return { categories: [] };
   return res.json();
 }
