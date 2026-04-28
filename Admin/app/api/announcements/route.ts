@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-
-interface AnnouncementRow {
-  id: number;
-  message: string;
-  is_active: number;
-  sort_order: number;
-  starts_at: string | null;
-  ends_at: string | null;
-  created_at: string;
-}
+import pool from '@/lib/db';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export async function GET() {
-  const announcements = db
-    .prepare(
-      `SELECT id, message, is_active, sort_order, starts_at, ends_at, created_at
-         FROM announcements
-        ORDER BY sort_order ASC, created_at DESC`
-    )
-    .all() as AnnouncementRow[];
-  return NextResponse.json({ announcements });
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT id, message, is_active, sort_order, starts_at, ends_at, created_at
+       FROM announcements
+      ORDER BY sort_order ASC, created_at DESC`
+  );
+  return NextResponse.json({ announcements: rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -36,21 +25,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sort_order = Number.isFinite(Number(body.sort_order))
-      ? Number(body.sort_order)
-      : 0;
+    const sort_order = Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : 0;
     const is_active = body.is_active === false || body.is_active === 0 ? 0 : 1;
     const starts_at: string | null = body.starts_at || null;
     const ends_at: string | null = body.ends_at || null;
 
-    const res = db
-      .prepare(
-        `INSERT INTO announcements (message, is_active, sort_order, starts_at, ends_at)
-         VALUES (?, ?, ?, ?, ?)`
-      )
-      .run(message, is_active, sort_order, starts_at, ends_at);
+    const [result] = await pool.execute<ResultSetHeader>(
+      'INSERT INTO announcements (message, is_active, sort_order, starts_at, ends_at) VALUES (?, ?, ?, ?, ?)',
+      [message, is_active, sort_order, starts_at, ends_at]
+    );
 
-    return NextResponse.json({ id: res.lastInsertRowid }, { status: 201 });
+    return NextResponse.json({ id: result.insertId }, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to create announcement' }, { status: 500 });

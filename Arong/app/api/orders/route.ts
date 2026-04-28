@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
-import { findUsableCoupon, evaluateCoupon, type CartItemInput } from '@/lib/coupons';
+import pool from '@/lib/db';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
+import { findUsableCoupon, evaluateCoupon, eligibleProductIds, type CartItemInput } from '@/lib/coupons';
 import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email';
 import { sendWhatsAppOrderNotification } from '@/lib/whatsapp';
 
@@ -31,91 +32,109 @@ export async function POST(req: NextRequest) {
       0
     );
 
-    // Shipping cost
     const isSherpur = city && city.toLowerCase() === 'sherpur';
     const shipping_cost = isSherpur ? 0 : 120;
 
     const order_number = generateOrderNumber();
     const normalizedCoupon = coupon_code ? String(coupon_code).toUpperCase() : null;
 
-    const placeOrder = db.transaction(() => {
-      // Re-validate the coupon server-side using the actual cart and the
-      // scoping rules (cart / category / product). The atomic reserve UPDATE
-      // guarantees `used_count < max_uses` even under concurrent placement.
-      let discount = 0;
-      let appliedCoupon: string | null = null;
+    // Pre-validate coupon outside the transaction (read-only)
+    let couponRow = null;
+    let evalEligibleIds = new Set<number>();
+    if (normalizedCoupon) {
+      couponRow = await findUsableCoupon(normalizedCoupon);
+      if (couponRow) {
+        const cartForEval: CartItemInput[] = items.map(
+          (it: { product_id?: number | null; price: number; quantity: number }) => ({
+            product_id:
+              typeof it.product_id === 'number' && Number.isInteger(it.product_id)
+                ? it.product_id
+                : null,
+            price: Number(it.price) || 0,
+            quantity: Math.max(1, Math.floor(Number(it.quantity) || 0)),
+          })
+        );
+        evalEligibleIds = await eligibleProductIds(couponRow, cartForEval);
+      }
+    }
 
-      if (normalizedCoupon) {
-        const coupon = findUsableCoupon(normalizedCoupon);
-        if (coupon) {
-          const cartForEval: CartItemInput[] = items.map(
-            (it: { product_id?: number | null; price: number; quantity: number }) => ({
-              product_id:
-                typeof it.product_id === 'number' && Number.isInteger(it.product_id)
-                  ? it.product_id
-                  : null,
-              price: Number(it.price) || 0,
-              quantity: Math.max(1, Math.floor(Number(it.quantity) || 0)),
-            })
+    const conn = await pool.getConnection();
+    let orderId: number;
+    let total: number;
+    let finalDiscount = 0;
+    let appliedCoupon: string | null = null;
+
+    try {
+      await conn.beginTransaction();
+
+      // Atomic coupon reservation
+      if (couponRow && normalizedCoupon) {
+        const cartForEval: CartItemInput[] = items.map(
+          (it: { product_id?: number | null; price: number; quantity: number }) => ({
+            product_id:
+              typeof it.product_id === 'number' && Number.isInteger(it.product_id)
+                ? it.product_id
+                : null,
+            price: Number(it.price) || 0,
+            quantity: Math.max(1, Math.floor(Number(it.quantity) || 0)),
+          })
+        );
+        const evalResult = evaluateCoupon(couponRow, cartForEval, evalEligibleIds);
+
+        if (evalResult.ok && evalResult.discount > 0) {
+          const [reserve] = await conn.execute<ResultSetHeader>(
+            `UPDATE coupons
+                SET used_count = used_count + 1
+              WHERE id = ?
+                AND is_active = 1
+                AND (expires_at IS NULL OR expires_at > NOW())
+                AND (max_uses IS NULL OR used_count < max_uses)`,
+            [couponRow.id]
           );
-          const evalResult = evaluateCoupon(coupon, cartForEval);
 
-          if (evalResult.ok && evalResult.discount > 0) {
-            // Atomic reserve: only increments if a slot is still available.
-            const reserve = db
-              .prepare(
-                `UPDATE coupons
-                    SET used_count = used_count + 1
-                  WHERE id = ?
-                    AND is_active = 1
-                    AND (expires_at IS NULL OR expires_at > datetime('now'))
-                    AND (max_uses IS NULL OR used_count < max_uses)`
-              )
-              .run(coupon.id);
-
-            if (reserve.changes === 1) {
-              discount = evalResult.discount;
-              if (discount > subtotal) discount = subtotal;
-              appliedCoupon = normalizedCoupon;
-            }
+          if (reserve.affectedRows === 1) {
+            finalDiscount = evalResult.discount;
+            if (finalDiscount > subtotal) finalDiscount = subtotal;
+            appliedCoupon = normalizedCoupon;
           }
         }
       }
 
-      const total = subtotal + shipping_cost - discount;
+      total = subtotal + shipping_cost - finalDiscount;
 
-      const orderResult = db.prepare(`
+      const [orderResult] = await conn.execute<ResultSetHeader>(`
         INSERT INTO orders (order_number, full_name, phone, email, address, city, division,
           subtotal, shipping_cost, discount, total, payment_method, notes, coupon_code)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `, [
         order_number, full_name, phone, email || null, address, city, division,
-        subtotal, shipping_cost, discount, total, payment_method,
-        notes || null, appliedCoupon
-      );
+        subtotal, shipping_cost, finalDiscount, total, payment_method,
+        notes || null, appliedCoupon,
+      ]);
 
-      const orderId = orderResult.lastInsertRowid;
-
-      const insertItem = db.prepare(`
-        INSERT INTO order_items (order_id, product_id, product_name, variant_name, quantity, price)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
+      orderId = orderResult.insertId;
 
       for (const item of items) {
-        insertItem.run(
+        await conn.execute(`
+          INSERT INTO order_items (order_id, product_id, product_name, variant_name, quantity, price)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `, [
           orderId,
           item.product_id || null,
           item.product_name,
           item.variant_name || null,
           item.quantity,
-          item.price
-        );
+          item.price,
+        ]);
       }
 
-      return { orderId, total, subtotal, shipping_cost, discount, appliedCoupon };
-    });
-
-    const { orderId, total, subtotal: finalSubtotal, shipping_cost: finalShipping, discount: finalDiscount, appliedCoupon } = placeOrder();
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
 
     const orderItemsForNotify = items.map(
       (it: { product_name: string; variant_name?: string | null; quantity: number; price: number }) => ({
@@ -136,26 +155,23 @@ export async function POST(req: NextRequest) {
       notes: notes || null,
       payment_method,
       items: orderItemsForNotify,
-      subtotal: finalSubtotal,
-      shipping_cost: finalShipping,
+      subtotal,
+      shipping_cost,
       discount: finalDiscount,
       total,
       coupon_code: appliedCoupon,
     };
 
-    // Fire-and-forget customer confirmation email (non-blocking).
     if (email) {
       sendOrderConfirmationEmail({ ...baseOrderPayload, to: email }).catch((err) => {
         console.error('[orders] Failed to send customer email:', err);
       });
     }
 
-    // Fire-and-forget admin email notification (non-blocking).
     sendAdminOrderNotification({ ...baseOrderPayload, to: email || '' }).catch((err) => {
       console.error('[orders] Failed to send admin email:', err);
     });
 
-    // Fire-and-forget WhatsApp admin notification (non-blocking).
     sendWhatsAppOrderNotification({ ...baseOrderPayload, email: email || null }).catch((err) => {
       console.error('[orders] Failed to send WhatsApp:', err);
     });

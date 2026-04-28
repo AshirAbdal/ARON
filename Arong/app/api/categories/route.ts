@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
 
 export async function GET() {
-  const categories = db.prepare('SELECT * FROM categories ORDER BY name ASC').all();
-  return NextResponse.json({ categories });
+  const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM categories ORDER BY name ASC');
+  return NextResponse.json({ categories: rows });
 }

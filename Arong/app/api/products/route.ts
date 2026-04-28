@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -52,20 +53,17 @@ export async function GET(req: NextRequest) {
   };
   query += ` ORDER BY ${sortMap[sort] || 'p.created_at DESC'}`;
 
-  const countQuery = `SELECT COUNT(*) as total FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1${
-    category ? ' AND c.slug = ?' : ''
-  }${audienceFilter ? ' AND p.audience = ?' : ''}${
-    search ? ' AND (p.name LIKE ? OR p.brand LIKE ? OR p.description LIKE ?)' : ''
-  }${featured === '1' ? ' AND p.is_featured = 1' : ''}${
-    newArrival === '1' ? ' AND p.is_new_arrival = 1' : ''
-  }`;
+  let countQuery = `SELECT COUNT(*) as total FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE 1=1`;
+  if (category) countQuery += ' AND c.slug = ?';
+  if (audienceFilter) countQuery += ' AND p.audience = ?';
+  if (search) countQuery += ' AND (p.name LIKE ? OR p.brand LIKE ? OR p.description LIKE ?)';
+  if (featured === '1') countQuery += ' AND p.is_featured = 1';
+  if (newArrival === '1') countQuery += ' AND p.is_new_arrival = 1';
 
-  const total = (db.prepare(countQuery).get(...params) as { total: number }).total;
+  const [[countRows], [products]] = await Promise.all([
+    pool.execute<RowDataPacket[]>(countQuery, params),
+    pool.execute<RowDataPacket[]>(query + ' LIMIT ? OFFSET ?', [...params, limit, offset]),
+  ]);
 
-  query += ' LIMIT ? OFFSET ?';
-  params.push(limit, offset);
-
-  const products = db.prepare(query).all(...params);
-
-  return NextResponse.json({ products, total, limit, offset });
+  return NextResponse.json({ products, total: (countRows[0] as { total: number }).total, limit, offset });
 }

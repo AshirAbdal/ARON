@@ -90,7 +90,7 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {categories.map((cat: { id: number; name: string; slug: string }) => {
+          {categories.map((cat: { id: number; name: string; slug: string; image_url?: string }) => {
             const Icon = CATEGORY_ICON[cat.slug] || FALLBACK_ICON;
             return (
               <Link
@@ -99,10 +99,20 @@ export default async function HomePage() {
                 className="flex flex-col items-center gap-2 p-4 border border-gray-200 hover:border-black transition-colors group"
               >
                 <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black transition-colors">
-                  <Icon
-                    className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors"
-                    strokeWidth={1.75}
-                  />
+                  {cat.image_url ? (
+                    <Image
+                      src={cat.image_url}
+                      alt={`${cat.name} logo`}
+                      width={28}
+                      height={28}
+                      className="w-7 h-7 object-cover rounded-full"
+                    />
+                  ) : (
+                    <Icon
+                      className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors"
+                      strokeWidth={1.75}
+                    />
+                  )}
                 </div>
                 <span className="text-xs font-medium text-center group-hover:text-rose-600 transition-colors">
                   {cat.name}

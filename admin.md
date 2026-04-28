@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Admin panel is a separate Next.js 14 application running on **port 3001**. It provides full control over products, categories, orders, and business analytics. It shares the same SQLite database as the storefront.
+The Admin panel is a separate Next.js 14 application running on **port 3001**. It provides full control over products, categories, orders, and business analytics. It shares the same **MySQL** database as the storefront.
 
 **URL:** http://localhost:3001  
 **Directory:** `/Users/ashirabdalravee/Arong/Admin/`  
@@ -17,7 +17,7 @@ The Admin panel is a separate Next.js 14 application running on **port 3001**. I
 | Next.js | 14.2.28 | App Router framework |
 | TypeScript | ^5 | Type safety |
 | Tailwind CSS | ^3.3.0 | Styling |
-| better-sqlite3 | ^11.9.1 | SQLite database access |
+| mysql2 | ^3.11.0 | MySQL database access (async) |
 | lucide-react | ^0.363.0 | Icons |
 
 ---

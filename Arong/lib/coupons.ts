@@ -1,4 +1,5 @@
-import db from './db';
+import pool from './db';
+import type { RowDataPacket } from 'mysql2';
 
 export type CouponScope = 'cart' | 'category' | 'product';
 export type CouponApplyTo = 'eligible' | 'cart';
@@ -35,31 +36,31 @@ export interface CouponEvalResult {
  * Returns coupon row if usable (active, not expired, slot available),
  * or null if not. Does NOT lock or reserve.
  */
-export function findUsableCoupon(code: string): CouponRow | null {
-  const row = db
-    .prepare(
-      `SELECT id, code, discount_type, discount_value, min_order, max_uses,
-              used_count, is_active, expires_at, scope, apply_to
-         FROM coupons
-        WHERE code = ?
-          AND is_active = 1
-          AND (max_uses IS NULL OR used_count < max_uses)
-          AND (expires_at IS NULL OR expires_at > datetime('now'))`
-    )
-    .get(code.toUpperCase()) as CouponRow | undefined;
-  return row || null;
+export async function findUsableCoupon(code: string): Promise<CouponRow | null> {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT id, code, discount_type, discount_value, min_order, max_uses,
+            used_count, is_active, expires_at, scope, apply_to
+       FROM coupons
+      WHERE code = ?
+        AND is_active = 1
+        AND (max_uses IS NULL OR used_count < max_uses)
+        AND (expires_at IS NULL OR expires_at > NOW())`,
+    [code.toUpperCase()]
+  );
+  return (rows[0] as CouponRow) || null;
 }
 
 /** Returns the set of product_ids (in this cart) that are eligible for the coupon. */
-export function eligibleProductIds(coupon: CouponRow, items: CartItemInput[]): Set<number> {
+export async function eligibleProductIds(coupon: CouponRow, items: CartItemInput[]): Promise<Set<number>> {
   if (coupon.scope === 'cart') {
     return new Set(items.map((i) => i.product_id).filter((x): x is number => typeof x === 'number'));
   }
 
-  const targets = db
-    .prepare(`SELECT target_id FROM coupon_targets WHERE coupon_id = ? AND target_type = ?`)
-    .all(coupon.id, coupon.scope) as { target_id: number }[];
-  const targetIds = new Set(targets.map((t) => t.target_id));
+  const [targets] = await pool.execute<RowDataPacket[]>(
+    'SELECT target_id FROM coupon_targets WHERE coupon_id = ? AND target_type = ?',
+    [coupon.id, coupon.scope]
+  );
+  const targetIds = new Set((targets as { target_id: number }[]).map((t) => t.target_id));
 
   if (coupon.scope === 'product') {
     return new Set(
@@ -76,15 +77,14 @@ export function eligibleProductIds(coupon: CouponRow, items: CartItemInput[]): S
   if (productIds.length === 0) return new Set();
 
   const placeholders = productIds.map(() => '?').join(',');
-  const rows = db
-    .prepare(
-      `SELECT id, category_id FROM products WHERE id IN (${placeholders})`
-    )
-    .all(...productIds) as { id: number; category_id: number | null }[];
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT id, category_id FROM products WHERE id IN (${placeholders})`,
+    productIds
+  );
 
   return new Set(
-    rows
-      .filter((r) => r.category_id !== null && targetIds.has(r.category_id))
+    (rows as { id: number; category_id: number | null }[])
+      .filter((r) => r.category_id !== null && targetIds.has(r.category_id!))
       .map((r) => r.id)
   );
 }
@@ -92,10 +92,10 @@ export function eligibleProductIds(coupon: CouponRow, items: CartItemInput[]): S
 /** Pure calculation: never mutates DB. */
 export function evaluateCoupon(
   coupon: CouponRow,
-  items: CartItemInput[]
+  items: CartItemInput[],
+  eligibleIds: Set<number>
 ): CouponEvalResult {
   const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
-  const eligibleIds = eligibleProductIds(coupon, items);
 
   const eligibleSubtotal = items.reduce((s, it) => {
     if (it.product_id !== null && eligibleIds.has(it.product_id)) {

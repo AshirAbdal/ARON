@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
 
 export async function PATCH(
   req: NextRequest,
@@ -44,9 +44,7 @@ export async function PATCH(
     }
 
     values.push(params.id);
-    db.prepare(`UPDATE announcements SET ${fields.join(', ')} WHERE id = ?`).run(
-      ...values
-    );
+    await pool.execute(`UPDATE announcements SET ${fields.join(', ')} WHERE id = ?`, values);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -58,6 +56,6 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  db.prepare('DELETE FROM announcements WHERE id = ?').run(params.id);
+  await pool.execute('DELETE FROM announcements WHERE id = ?', [params.id]);
   return NextResponse.json({ success: true });
 }

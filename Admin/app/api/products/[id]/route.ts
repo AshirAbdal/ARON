@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(params.id);
+  const [productRows] = await pool.execute<RowDataPacket[]>('SELECT * FROM products WHERE id = ?', [params.id]);
+  const product = productRows[0];
   if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const images = db
-    .prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC')
-    .all((product as { id: number }).id);
-  const variants = db
-    .prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY price ASC')
-    .all((product as { id: number }).id);
+  const [[images], [variants]] = await Promise.all([
+    pool.execute<RowDataPacket[]>(
+      'SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC',
+      [(product as { id: number }).id]
+    ),
+    pool.execute<RowDataPacket[]>(
+      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY price ASC',
+      [(product as { id: number }).id]
+    ),
+  ]);
 
   return NextResponse.json({ product, images, variants });
 }
@@ -34,47 +40,51 @@ export async function PUT(
     const ALLOWED_AUDIENCE = ['men', 'women', 'baby', 'unisex'];
     const audienceValue = ALLOWED_AUDIENCE.includes(audience) ? audience : 'unisex';
 
-    db.prepare(`
-      UPDATE products SET
-        name = ?, description = ?, price_min = ?, price_max = ?,
-        brand = ?, category_id = ?, audience = ?,
-        is_new_arrival = ?, is_featured = ?,
-        free_delivery = ?, discount_label = ?, stock = ?, notes = ?
-      WHERE id = ?
-    `).run(
-      name, description || null, price_min, price_max || null,
-      brand || null, category_id || null, audienceValue,
-      is_new_arrival ? 1 : 0,
-      is_featured ? 1 : 0, free_delivery ? 1 : 0, discount_label || null,
-      stock, notes || null, params.id
-    );
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
 
-    const updateRelated = db.transaction(() => {
-      // Replace images
+      await conn.execute(`
+        UPDATE products SET
+          name = ?, description = ?, price_min = ?, price_max = ?,
+          brand = ?, category_id = ?, audience = ?,
+          is_new_arrival = ?, is_featured = ?,
+          free_delivery = ?, discount_label = ?, stock = ?, notes = ?
+        WHERE id = ?
+      `, [
+        name, description || null, price_min, price_max || null,
+        brand || null, category_id || null, audienceValue,
+        is_new_arrival ? 1 : 0,
+        is_featured ? 1 : 0, free_delivery ? 1 : 0, discount_label || null,
+        stock, notes || null, params.id,
+      ]);
+
       if (images.length > 0) {
-        db.prepare('DELETE FROM product_images WHERE product_id = ?').run(params.id);
-        const insertImg = db.prepare(
-          'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)'
-        );
-        images.forEach((img: { url: string }, i: number) => {
-          insertImg.run(params.id, img.url, i === 0 ? 1 : 0);
-        });
-      }
-
-      // Replace variants
-      db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(params.id);
-      if (variants.length > 0) {
-        const insertVariant = db.prepare(
-          'INSERT INTO product_variants (product_id, name, price, stock) VALUES (?, ?, ?, ?)'
-        );
-        for (const v of variants) {
-          insertVariant.run(params.id, v.name, v.price, v.stock || 100);
+        await conn.execute('DELETE FROM product_images WHERE product_id = ?', [params.id]);
+        for (let i = 0; i < images.length; i++) {
+          await conn.execute(
+            'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)',
+            [params.id, images[i].url, i === 0 ? 1 : 0]
+          );
         }
       }
-    });
 
-    updateRelated();
-    return NextResponse.json({ success: true });
+      await conn.execute('DELETE FROM product_variants WHERE product_id = ?', [params.id]);
+      for (const v of variants) {
+        await conn.execute(
+          'INSERT INTO product_variants (product_id, name, price, stock) VALUES (?, ?, ?, ?)',
+          [params.id, v.name, v.price, v.stock || 100]
+        );
+      }
+
+      await conn.commit();
+      return NextResponse.json({ success: true });
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
@@ -85,6 +95,6 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  db.prepare('DELETE FROM products WHERE id = ?').run(params.id);
+  await pool.execute('DELETE FROM products WHERE id = ?', [params.id]);
   return NextResponse.json({ success: true });
 }

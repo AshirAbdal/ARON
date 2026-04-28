@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -18,12 +19,14 @@ export async function GET(req: NextRequest) {
   query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
 
-  const orders = db.prepare(query).all(...params);
-  const total = (
-    db.prepare(`SELECT COUNT(*) as c FROM orders${status ? ' WHERE status = ?' : ''}`).get(
-      ...(status ? [status] : [])
-    ) as { c: number }
-  ).c;
+  const countParams = status ? [status] : [];
+  const [[orders], [countRows]] = await Promise.all([
+    pool.execute<RowDataPacket[]>(query, params),
+    pool.execute<RowDataPacket[]>(
+      `SELECT COUNT(*) as c FROM orders${status ? ' WHERE status = ?' : ''}`,
+      countParams
+    ),
+  ]);
 
-  return NextResponse.json({ orders, total });
+  return NextResponse.json({ orders, total: (countRows[0] as { c: number }).c });
 }

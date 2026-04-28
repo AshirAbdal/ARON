@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUsableCoupon, evaluateCoupon, type CartItemInput } from '@/lib/coupons';
+import { findUsableCoupon, evaluateCoupon, eligibleProductIds, type CartItemInput } from '@/lib/coupons';
 
 /**
  * Preview coupon validity for a given cart.
@@ -38,12 +38,13 @@ export async function POST(req: NextRequest) {
     }))
     .filter((it) => it.price > 0 && it.quantity > 0);
 
-  const coupon = findUsableCoupon(code);
+  const coupon = await findUsableCoupon(code);
   if (!coupon) {
     return NextResponse.json({ error: 'Invalid or expired coupon' }, { status: 404 });
   }
 
-  const result = evaluateCoupon(coupon, safeItems);
+  const eligIds = await eligibleProductIds(coupon, safeItems);
+  const result = evaluateCoupon(coupon, safeItems, eligIds);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }

@@ -1,32 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { setCouponTargets, type CouponScope } from '@/lib/couponTargets';
 
-interface CouponListRow {
-  id: number;
-  code: string;
-  discount_type: 'percentage' | 'fixed';
-  discount_value: number;
-  min_order: number;
-  max_uses: number | null;
-  used_count: number;
-  is_active: number;
-  expires_at: string | null;
-  scope: CouponScope;
-  apply_to: 'eligible' | 'cart';
-  created_at: string;
-  target_count: number;
-}
-
 export async function GET() {
-  const coupons = db
-    .prepare(
-      `SELECT c.*,
-              (SELECT COUNT(*) FROM coupon_targets t WHERE t.coupon_id = c.id) AS target_count
-         FROM coupons c
-        ORDER BY c.created_at DESC`
-    )
-    .all() as CouponListRow[];
+  const [coupons] = await pool.execute<RowDataPacket[]>(
+    `SELECT c.*,
+            (SELECT COUNT(*) FROM coupon_targets t WHERE t.coupon_id = c.id) AS target_count
+       FROM coupons c
+      ORDER BY c.created_at DESC`
+  );
   return NextResponse.json({ coupons });
 }
 
@@ -110,33 +93,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    let newId = 0;
-    const create = db.transaction(() => {
-      const res = db
-        .prepare(
-          `INSERT INTO coupons (code, discount_type, discount_value, min_order, max_uses,
-                                is_active, expires_at, scope, apply_to)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .run(
-          normalizedCode,
-          discount_type,
-          value,
-          minOrder,
-          maxUses,
-          is_active ? 1 : 0,
-          expiresAtSql,
-          scope,
-          apply_to
-        );
-      newId = Number(res.lastInsertRowid);
-      setCouponTargets(newId, scope as CouponScope, productIds, categoryIds);
-    });
-    create();
+    const [result] = await pool.execute<ResultSetHeader>(
+      `INSERT INTO coupons (code, discount_type, discount_value, min_order, max_uses,
+                            is_active, expires_at, scope, apply_to)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [normalizedCode, discount_type, value, minOrder, maxUses, is_active ? 1 : 0, expiresAtSql, scope, apply_to]
+    );
+    const newId = result.insertId;
+    await setCouponTargets(newId, scope as CouponScope, productIds, categoryIds);
     return NextResponse.json({ id: newId }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : '';
-    if (message.includes('UNIQUE')) {
+    if (message.includes('Duplicate') || message.includes('ER_DUP_ENTRY')) {
       return NextResponse.json({ error: 'Coupon code already exists' }, { status: 409 });
     }
     console.error(err);

@@ -17,7 +17,7 @@ The Arong storefront is a Next.js 14 e-commerce website for **Arong Cosmetics**,
 | Next.js | 14.2.28 | App Router, SSR/SSG, API routes |
 | TypeScript | ^5 | Type safety |
 | Tailwind CSS | ^3.3.0 | Utility-first styling |
-| better-sqlite3 | ^11.9.1 | SQLite (used in API routes, server-side only) |
+| mysql2 | ^3.11.0 | MySQL database (async, pure JS — no native compilation) |
 | lucide-react | ^0.363.0 | Icons |
 | React Context + localStorage | — | Client-side cart state |
 
@@ -493,7 +493,7 @@ Reads `order` from URL search params. Displays:
 
 ## API Routes (Storefront)
 
-These routes run server-side inside Next.js. They directly query the SQLite database.
+These routes run server-side inside Next.js. They query MySQL via the `pool` connection (`lib/db.ts`).
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -542,4 +542,4 @@ npm install        # first time only
 npm run dev        # starts on http://localhost:3000
 ```
 
-The database is auto-created and seeded at `/Users/ashirabdalravee/Arong/db/arong.db` on first start.
+Set `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` in `Arong/.env.local` before starting. Run `db/schema.sql` once to create tables.

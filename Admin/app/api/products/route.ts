@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -34,23 +35,21 @@ export async function GET(req: NextRequest) {
     params.push(audienceFilter);
   }
 
+  const countParams = [...params];
   query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
 
-  const products = db.prepare(query).all(...params);
-  const total = (
-    db.prepare(`SELECT COUNT(*) as c FROM products p WHERE 1=1${
-      search ? ' AND (p.name LIKE ? OR p.brand LIKE ?)' : ''
-    }${category ? ' AND p.category_id = ?' : ''}${
-      audienceFilter ? ' AND p.audience = ?' : ''
-    }`).get(
-      ...(search ? [`%${search}%`, `%${search}%`] : []),
-      ...(category ? [parseInt(category)] : []),
-      ...(audienceFilter ? [audienceFilter] : [])
-    ) as { c: number }
-  ).c;
+  let countQuery = `SELECT COUNT(*) as c FROM products p WHERE 1=1`;
+  if (search) countQuery += ' AND (p.name LIKE ? OR p.brand LIKE ?)';
+  if (category) countQuery += ' AND p.category_id = ?';
+  if (audienceFilter) countQuery += ' AND p.audience = ?';
 
-  return NextResponse.json({ products, total });
+  const [[products], [countRows]] = await Promise.all([
+    pool.execute<RowDataPacket[]>(query, params),
+    pool.execute<RowDataPacket[]>(countQuery, countParams),
+  ]);
+
+  return NextResponse.json({ products, total: (countRows[0] as { c: number }).c });
 }
 
 export async function POST(req: NextRequest) {
@@ -79,48 +78,53 @@ export async function POST(req: NextRequest) {
 
     const uniqueSlug = `${slug}-${Date.now()}`;
 
-    const insertProduct = db.transaction(() => {
-      const res = db.prepare(`
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const [res] = await conn.execute<ResultSetHeader>(`
         INSERT INTO products (name, slug, description, price_min, price_max, brand, category_id, audience,
           is_new_arrival, is_featured, free_delivery, discount_label, stock, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `, [
         name, uniqueSlug, description || null, price_min, price_max || null,
         brand || null, category_id || null, audienceValue,
         is_new_arrival ? 1 : 0,
         is_featured ? 1 : 0, free_delivery ? 1 : 0, discount_label || null,
-        stock, notes || null
-      );
+        stock, notes || null,
+      ]);
 
-      const productId = res.lastInsertRowid;
+      const productId = res.insertId;
 
       if (images.length > 0) {
-        const insertImg = db.prepare(
-          'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)'
-        );
-        images.forEach((img: { url: string; is_primary?: boolean }, i: number) => {
-          insertImg.run(productId, img.url, i === 0 ? 1 : 0);
-        });
-      } else {
-        db.prepare(
-          'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)'
-        ).run(productId, '/placeholder.jpg', 1);
-      }
-
-      if (variants.length > 0) {
-        const insertVariant = db.prepare(
-          'INSERT INTO product_variants (product_id, name, price, stock) VALUES (?, ?, ?, ?)'
-        );
-        for (const v of variants) {
-          insertVariant.run(productId, v.name, v.price, v.stock || 100);
+        for (let i = 0; i < images.length; i++) {
+          await conn.execute(
+            'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)',
+            [productId, images[i].url, i === 0 ? 1 : 0]
+          );
         }
+      } else {
+        await conn.execute(
+          'INSERT INTO product_images (product_id, image_url, is_primary) VALUES (?, ?, ?)',
+          [productId, '/placeholder.jpg', 1]
+        );
       }
 
-      return productId;
-    });
+      for (const v of variants) {
+        await conn.execute(
+          'INSERT INTO product_variants (product_id, name, price, stock) VALUES (?, ?, ?, ?)',
+          [productId, v.name, v.price, v.stock || 100]
+        );
+      }
 
-    const id = insertProduct();
-    return NextResponse.json({ id }, { status: 201 });
+      await conn.commit();
+      return NextResponse.json({ id: productId }, { status: 201 });
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });

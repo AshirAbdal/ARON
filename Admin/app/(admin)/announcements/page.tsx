@@ -38,6 +38,13 @@ export default function AnnouncementsPage() {
     fetchItems();
   }, []);
 
+  // Convert datetime-local value (local time) to UTC ISO string for DB storage
+  const toUtcIso = (localVal: string) => {
+    if (!localVal) return null;
+    const d = new Date(localVal);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  };
+
   const handleCreate = async () => {
     if (!form.message.trim()) return;
     setSubmitting(true);
@@ -47,8 +54,8 @@ export default function AnnouncementsPage() {
       body: JSON.stringify({
         message: form.message,
         sort_order: Number(form.sort_order) || 0,
-        starts_at: form.starts_at || null,
-        ends_at: form.ends_at || null,
+        starts_at: toUtcIso(form.starts_at),
+        ends_at: toUtcIso(form.ends_at),
       }),
     });
     setSubmitting(false);

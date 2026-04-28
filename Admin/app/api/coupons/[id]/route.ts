@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import pool from '@/lib/db';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { setCouponTargets, getCouponTargets, type CouponScope } from '@/lib/couponTargets';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -7,12 +8,12 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
-  const coupon = db.prepare('SELECT * FROM coupons WHERE id = ?').get(id);
-  if (!coupon) {
+  const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM coupons WHERE id = ?', [id]);
+  if (!rows[0]) {
     return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
   }
-  const targets = getCouponTargets(id);
-  return NextResponse.json({ coupon, targets });
+  const targets = await getCouponTargets(id);
+  return NextResponse.json({ coupon: rows[0], targets });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -62,7 +63,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     values.push(expiresAtSql);
   }
 
-  // Scope + apply_to (optional)
   let scopeChange: CouponScope | null = null;
   if (body.scope !== undefined) {
     if (body.scope !== 'cart' && body.scope !== 'category' && body.scope !== 'product') {
@@ -87,22 +87,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
   }
 
-  const update = db.transaction(() => {
+  try {
     if (fields.length > 0) {
-      values.push(id);
-      const result = db
-        .prepare(`UPDATE coupons SET ${fields.join(', ')} WHERE id = ?`)
-        .run(...values);
-      if (result.changes === 0) throw new Error('NOT_FOUND');
+      const [result] = await pool.execute<ResultSetHeader>(
+        `UPDATE coupons SET ${fields.join(', ')} WHERE id = ?`,
+        [...values, id]
+      );
+      if (result.affectedRows === 0) {
+        return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
+      }
     }
     if (targetsProvided) {
-      // Need scope to know which target list to use; use new scope or current scope.
-      const current = db.prepare('SELECT scope FROM coupons WHERE id = ?').get(id) as
-        | { scope: CouponScope }
-        | undefined;
-      if (!current) throw new Error('NOT_FOUND');
-      const effectiveScope = scopeChange ?? current.scope;
-      setCouponTargets(
+      const [scopeRows] = await pool.execute<RowDataPacket[]>('SELECT scope FROM coupons WHERE id = ?', [id]);
+      if (!scopeRows[0]) return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
+      const effectiveScope: CouponScope = scopeChange ?? (scopeRows[0] as { scope: CouponScope }).scope;
+      await setCouponTargets(
         id,
         effectiveScope,
         Array.isArray(body.target_product_ids)
@@ -113,18 +112,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           : []
       );
     }
-  });
-
-  try {
-    update();
-  } catch (err: unknown) {
-    if (err instanceof Error && err.message === 'NOT_FOUND') {
-      return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
-    }
+    return NextResponse.json({ ok: true });
+  } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to update coupon' }, { status: 500 });
   }
-  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -132,10 +124,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
-  const result = db.prepare('DELETE FROM coupons WHERE id = ?').run(id);
-  if (result.changes === 0) {
+  const [result] = await pool.execute<ResultSetHeader>('DELETE FROM coupons WHERE id = ?', [id]);
+  if (result.affectedRows === 0) {
     return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
   }
   return NextResponse.json({ ok: true });
 }
-

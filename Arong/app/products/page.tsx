@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import ProductCard from '@/components/ProductCard';
 import { Search } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -25,7 +25,7 @@ interface Category {
   slug: string;
 }
 
-export default function ShopAllPage() {
+function ShopAllContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -195,5 +195,13 @@ export default function ShopAllPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ShopAllPage() {
+  return (
+    <Suspense>
+      <ShopAllContent />
+    </Suspense>
   );
 }
