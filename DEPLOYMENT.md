@@ -94,7 +94,7 @@ Open **cPanel → File Manager**, navigate to `/home/aronbdne`, and create:
 > 📝 Save these values — you need them in Step 6:
 > - `DB_HOST` = `localhost`
 > - `DB_USER` = `aronbdne_aronapp`
-> - `DB_PASS` = *(^hSVA&~D=YJcutO!)*
+> - `DB_PASS` = *()*
 > - `DB_NAME` = `aronbdne_aron`
 
 ---

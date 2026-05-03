@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import type { RowDataPacket } from 'mysql2';
 
+export const dynamic = 'force-dynamic';
+
 // Public list of currently usable coupons for the announcement bar.
 // Only safe, non-sensitive fields are exposed.
 export async function GET() {

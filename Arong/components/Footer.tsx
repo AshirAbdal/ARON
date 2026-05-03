@@ -32,7 +32,7 @@ export default function Footer() {
                 Instagram
               </a>
               <a
-                href="https://wa.me/8801700000000"
+                href="https://wa.me/8801778844187"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
@@ -55,7 +55,7 @@ export default function Footer() {
               >
                 arononlineshopinfo@gmail.com
               </a>
-              <p className="text-sm text-gray-600">Call us: +880 1700-000000</p>
+              <p className="text-sm text-gray-600">Call us: 01778844187</p>
             </div>
           </div>
 

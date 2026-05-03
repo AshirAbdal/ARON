@@ -279,7 +279,7 @@ export default function Navbar() {
               <Link
                 href="/"
                 onClick={closeMobile}
-                className="block py-2 text-sm font-medium text-gray-700 hover:text-black border-b border-gray-100"
+                className="block py-2.5 text-base font-medium text-gray-700 hover:text-black border-b border-gray-100"
               >
                 Home
               </Link>
@@ -289,7 +289,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMobileGroup(mobileGroup === 'shop' ? null : 'shop')}
-                  className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-700 hover:text-black"
+                  className="w-full flex items-center justify-between py-2.5 text-base font-medium text-gray-700 hover:text-black"
                 >
                   Shop All
                   <ChevronDown
@@ -303,7 +303,7 @@ export default function Navbar() {
                     <Link
                       href="/products"
                       onClick={closeMobile}
-                      className="block py-1.5 text-sm text-gray-600 hover:text-black"
+                      className="block py-2 text-base text-gray-700 hover:text-black"
                     >
                       All Products
                     </Link>
@@ -314,7 +314,7 @@ export default function Navbar() {
                           onClick={() =>
                             setMobileSubGroup(mobileSubGroup === aud.key ? null : aud.key)
                           }
-                          className="w-full flex items-center justify-between py-1.5 text-sm text-gray-600 hover:text-black"
+                          className="w-full flex items-center justify-between py-2 text-base text-gray-700 hover:text-black"
                         >
                           {aud.label}
                           <ChevronDown
@@ -326,14 +326,14 @@ export default function Navbar() {
                         {mobileSubGroup === aud.key && (
                           <div className="pl-3 pb-1 space-y-1">
                             {sortedCategories.length === 0 ? (
-                              <span className="block py-1 text-xs text-gray-400">Loading…</span>
+                              <span className="block py-1.5 text-sm text-gray-400">Loading…</span>
                             ) : (
                               sortedCategories.map((c) => (
                                 <Link
                                   key={c.id}
                                   href={`/products?audience=${aud.key}&category=${c.slug}`}
                                   onClick={closeMobile}
-                                  className="block py-1 text-xs text-gray-500 hover:text-black"
+                                  className="block py-1.5 text-sm text-gray-600 hover:text-black"
                                 >
                                   {c.name}
                                 </Link>
@@ -352,7 +352,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMobileGroup(mobileGroup === 'products' ? null : 'products')}
-                  className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-700 hover:text-black"
+                  className="w-full flex items-center justify-between py-2.5 text-base font-medium text-gray-700 hover:text-black"
                 >
                   Products
                   <ChevronDown
@@ -364,14 +364,14 @@ export default function Navbar() {
                 {mobileGroup === 'products' && (
                   <div className="pb-2 pl-4 space-y-1">
                     {sortedCategories.length === 0 ? (
-                      <span className="block py-1.5 text-sm text-gray-400">Loading…</span>
+                      <span className="block py-2 text-base text-gray-400">Loading…</span>
                     ) : (
                       sortedCategories.map((c) => (
                         <Link
                           key={c.id}
                           href={`/products?category=${c.slug}`}
                           onClick={closeMobile}
-                          className="block py-1.5 text-sm text-gray-600 hover:text-black"
+                          className="block py-2 text-base text-gray-700 hover:text-black"
                         >
                           {c.name}
                         </Link>
@@ -384,14 +384,14 @@ export default function Navbar() {
               <Link
                 href="/track-order"
                 onClick={closeMobile}
-                className="block py-2 text-sm font-medium text-gray-700 hover:text-black border-b border-gray-100"
+                className="block py-2.5 text-base font-medium text-gray-700 hover:text-black border-b border-gray-100"
               >
                 Track Order
               </Link>
               <Link
                 href="/faq"
                 onClick={closeMobile}
-                className="block py-2 text-sm font-medium text-gray-700 hover:text-black"
+                className="block py-2.5 text-base font-medium text-gray-700 hover:text-black"
               >
                 FAQ
               </Link>

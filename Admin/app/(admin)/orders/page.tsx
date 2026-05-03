@@ -17,6 +17,22 @@ interface Order {
   created_at: string;
 }
 
+interface SuspiciousOrder {
+  id: number;
+  order_id: number | null;
+  order_number: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  ip: string | null;
+  score: number;
+  reasons_json: string;
+  review_status: 'pending' | 'approved' | 'blocked';
+  created_at: string;
+  total: number | null;
+  order_status: string | null;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
@@ -34,6 +50,16 @@ function AdminOrdersContent() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [suspiciousOrders, setSuspiciousOrders] = useState<SuspiciousOrder[]>([]);
+  const [suspiciousLoading, setSuspiciousLoading] = useState(true);
+
+  const fetchSuspiciousOrders = async () => {
+    setSuspiciousLoading(true);
+    const res = await fetch('/api/orders/suspicious?review_status=pending&limit=100');
+    const data = await res.json();
+    setSuspiciousOrders(data.suspiciousOrders || []);
+    setSuspiciousLoading(false);
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -48,6 +74,7 @@ function AdminOrdersContent() {
 
   useEffect(() => {
     fetchOrders();
+    fetchSuspiciousOrders();
   }, [statusFilter]);
 
   const updateStatus = async (id: number, status: string) => {
@@ -57,6 +84,15 @@ function AdminOrdersContent() {
       body: JSON.stringify({ status }),
     });
     fetchOrders();
+  };
+
+  const updateReviewStatus = async (id: number, review_status: 'pending' | 'approved' | 'blocked') => {
+    await fetch('/api/orders/suspicious', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, review_status }),
+    });
+    fetchSuspiciousOrders();
   };
 
   return (
@@ -85,6 +121,102 @@ function AdminOrdersContent() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-5">
+        <div className="px-5 py-3 border-b bg-red-50 flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-red-800">Suspicious Orders Review</h2>
+            <p className="text-xs text-red-600">Orders flagged by fraud rules</p>
+          </div>
+          <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+            {suspiciousOrders.length} pending
+          </span>
+        </div>
+
+        {suspiciousLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : suspiciousOrders.length === 0 ? (
+          <div className="text-center py-8 text-sm text-gray-500">No suspicious orders pending review.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[860px]">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Order</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Customer</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Score</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Reasons</th>
+                  <th className="text-left px-5 py-3 font-medium text-gray-600">Date</th>
+                  <th className="text-right px-5 py-3 font-medium text-gray-600">Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suspiciousOrders.map((s) => {
+                  let reasons: string[] = [];
+                  try {
+                    reasons = JSON.parse(s.reasons_json || '[]') as string[];
+                  } catch {
+                    reasons = [];
+                  }
+
+                  return (
+                    <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
+                      <td className="px-5 py-3">
+                        <p className="font-mono text-xs">{s.order_number}</p>
+                        {s.order_id && (
+                          <Link href={`/orders/${s.order_id}`} className="text-xs text-blue-600 hover:underline">
+                            View details
+                          </Link>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className="font-medium">{s.full_name}</p>
+                        <p className="text-xs text-gray-500">{s.phone}</p>
+                        {s.email && <p className="text-xs text-gray-500">{s.email}</p>}
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">{s.score}</span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {reasons.map((r) => (
+                            <span key={r} className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-500">
+                        {new Date(s.created_at).toLocaleString('en-BD')}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <div className="inline-flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateReviewStatus(s.id, 'approved')}
+                            className="text-xs px-2 py-1 rounded border border-green-200 text-green-700 hover:bg-green-50"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateReviewStatus(s.id, 'blocked')}
+                            className="text-xs px-2 py-1 rounded border border-red-200 text-red-700 hover:bg-red-50"
+                          >
+                            Block
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">

@@ -1,23 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifySessionToken } from '@/lib/authSession';
 
 const COOKIE_NAME = 'arong-admin-session';
-
-async function computeExpectedToken(secret: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode('arong-admin-authenticated')
-  );
-  return btoa(String.fromCharCode(...Array.from(new Uint8Array(signature))));
-}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -32,12 +16,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const secret = process.env.SESSION_SECRET || '';
-  const expectedToken = await computeExpectedToken(secret);
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    return new NextResponse('Server auth is not configured', { status: 500 });
+  }
+
   const cookieToken = req.cookies.get(COOKIE_NAME)?.value;
 
-  // Constant-time comparison to prevent timing attacks
-  if (!cookieToken || cookieToken !== expectedToken) {
+  const isValid = cookieToken ? await verifySessionToken(cookieToken, secret) : false;
+  if (!isValid) {
     const loginUrl = new URL('/login', req.url);
     return NextResponse.redirect(loginUrl);
   }

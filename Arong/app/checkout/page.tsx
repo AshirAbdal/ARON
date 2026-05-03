@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 
 const DIVISIONS: Record<string, string[]> = {
   Dhaka: ['Dhaka', 'Gazipur', 'Narayanganj', 'Manikganj', 'Munshiganj', 'Narsingdi', 'Tangail', 'Faridpur', 'Gopalganj'],
@@ -21,6 +22,7 @@ const DIVISIONS: Record<string, string[]> = {
 export default function CheckoutPage() {
   const { items, subtotal, clearCart, updateQuantity, removeItem, hydrated } = useCart();
   const router = useRouter();
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
   const [form, setForm] = useState({
     full_name: '',
@@ -38,7 +40,16 @@ export default function CheckoutPage() {
   const [couponValid, setCouponValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [consent, setConsent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    (window as typeof window & { __aronTurnstileDone?: (token: string) => void }).__aronTurnstileDone = (token) => {
+      setCaptchaToken(token || '');
+      setErrors((prev) => ({ ...prev, captcha: '' }));
+    };
+  }, []);
 
   const cities = form.division ? DIVISIONS[form.division] || [] : [];
   const shipping = form.city === 'Sherpur' ? 0 : form.division ? 120 : 0;
@@ -97,6 +108,7 @@ export default function CheckoutPage() {
     if (!form.division) errs.division = 'Please select your division';
     if (!form.city) errs.city = 'Please select your city';
     if (!consent) errs.consent = 'You must agree to the Terms and Privacy Policy to place an order';
+    if (turnstileSiteKey && !captchaToken) errs.captcha = 'Please complete captcha verification';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -116,11 +128,10 @@ export default function CheckoutPage() {
           coupon_code: couponValid ? couponCode : undefined,
           items: items.map((i) => ({
             product_id: i.product_id,
-            product_name: i.product_name,
-            variant_name: i.variant_name,
+            variant_id: i.variant_id,
             quantity: i.quantity,
-            price: i.price,
           })),
+          captcha_token: captchaToken,
         }),
       });
       const data = await res.json();
@@ -161,6 +172,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {turnstileSiteKey && (
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      )}
+
       <h1 className="text-2xl font-bold mb-8">Checkout</h1>
       <form onSubmit={handleSubmit} className="grid lg:grid-cols-2 gap-8">
         {/* Left: Shipping Details */}
@@ -459,6 +474,17 @@ export default function CheckoutPage() {
                 <p className="text-xs text-red-500 mt-1">{errors.consent}</p>
               )}
             </div>
+
+            {turnstileSiteKey && (
+              <div className="mt-4">
+                <div
+                  className="cf-turnstile"
+                  data-sitekey={turnstileSiteKey}
+                  data-callback="__aronTurnstileDone"
+                />
+                {errors.captcha && <p className="text-xs text-red-500 mt-1">{errors.captcha}</p>}
+              </div>
+            )}
 
             <button
               type="submit"

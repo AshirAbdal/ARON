@@ -144,6 +144,26 @@ CREATE TABLE IF NOT EXISTS order_items (
   FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- ────────────────────────────────────────────────
+-- suspicious_orders (fraud review queue)
+-- ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS suspicious_orders (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  order_id      INT,
+  order_number  VARCHAR(50),
+  full_name     VARCHAR(255) NOT NULL,
+  phone         VARCHAR(50)  NOT NULL,
+  email         VARCHAR(255),
+  ip            VARCHAR(100),
+  score         INT          NOT NULL DEFAULT 0,
+  reasons_json  TEXT         NOT NULL,
+  review_status VARCHAR(20)  NOT NULL DEFAULT 'pending',
+  reviewed_by   VARCHAR(100),
+  reviewed_at   DATETIME,
+  created_at    DATETIME     NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+);
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ────────────────────────────────────────────────

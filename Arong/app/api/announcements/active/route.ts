@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import type { RowDataPacket } from 'mysql2';
 
+export const dynamic = 'force-dynamic';
+
 // Public list of currently-live announcements for the top bar.
 export async function GET() {
   const [rows] = await pool.execute<RowDataPacket[]>(

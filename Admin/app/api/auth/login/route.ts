@@ -1,31 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createSessionToken } from '@/lib/authSession';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 const COOKIE_NAME = 'arong-admin-session';
 
-async function generateToken(secret: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode('arong-admin-authenticated')
-  );
-  return btoa(String.fromCharCode(...Array.from(new Uint8Array(signature))));
-}
-
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  const ip = (req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
+  const rate = applyRateLimit(`admin-login:${ip}`, 8, 10 * 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many login attempts. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rate.retryAfterSeconds) },
+      }
+    );
+  }
+
+  let body: { username: string; password: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request payload' }, { status: 400 });
+  }
+
   const { username, password } = body as { username: string; password: string };
 
   const validUsername = process.env.ADMIN_USERNAME;
   const validPassword = process.env.ADMIN_PASSWORD;
-  const secret = process.env.SESSION_SECRET || '';
+  const secret = process.env.SESSION_SECRET;
+
+  if (!validUsername || !validPassword || !secret) {
+    return NextResponse.json(
+      { error: 'Server auth is not configured' },
+      { status: 500 }
+    );
+  }
 
   if (
     !username ||
@@ -39,7 +49,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const token = await generateToken(secret);
+  const token = await createSessionToken(secret);
 
   const response = NextResponse.json({ success: true });
   response.cookies.set(COOKIE_NAME, token, {
