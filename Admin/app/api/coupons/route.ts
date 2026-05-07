@@ -4,13 +4,18 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { setCouponTargets, type CouponScope } from '@/lib/couponTargets';
 
 export async function GET() {
-  const [coupons] = await pool.execute<RowDataPacket[]>(
-    `SELECT c.*,
-            (SELECT COUNT(*) FROM coupon_targets t WHERE t.coupon_id = c.id) AS target_count
-       FROM coupons c
-      ORDER BY c.created_at DESC`
-  );
-  return NextResponse.json({ coupons });
+  try {
+    const [coupons] = await pool.execute<RowDataPacket[]>(
+      `SELECT c.*,
+              (SELECT COUNT(*) FROM coupon_targets t WHERE t.coupon_id = c.id) AS target_count
+         FROM coupons c
+        ORDER BY c.created_at DESC`
+    );
+    return NextResponse.json({ coupons });
+  } catch (err) {
+    console.error('[api/coupons GET]', err);
+    return NextResponse.json({ error: 'Failed to fetch coupons', coupons: [] }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

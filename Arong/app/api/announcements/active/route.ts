@@ -6,22 +6,22 @@ export const dynamic = 'force-dynamic';
 
 // Public list of currently-live announcements for the top bar.
 export async function GET() {
-  const [rows] = await pool.execute<RowDataPacket[]>(
-    `SELECT message
-       FROM announcements
-      WHERE is_active = 1
-        AND (starts_at IS NULL OR starts_at <= NOW())
-        AND (ends_at   IS NULL OR ends_at   >  NOW())
-      ORDER BY sort_order ASC, created_at DESC
-      LIMIT 20`
-  );
-
-  return NextResponse.json(
-    { announcements: (rows as { message: string }[]).map((r) => r.message) },
-    {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-      },
-    }
-  );
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      `SELECT message
+         FROM announcements
+        WHERE is_active = 1
+          AND (starts_at IS NULL OR starts_at <= NOW())
+          AND (ends_at   IS NULL OR ends_at   >  NOW())
+        ORDER BY sort_order ASC, created_at DESC
+        LIMIT 20`
+    );
+    return NextResponse.json(
+      { announcements: (rows as { message: string }[]).map((r) => r.message) },
+      { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } }
+    );
+  } catch (err) {
+    console.error('[announcements/active] GET error:', err);
+    return NextResponse.json({ announcements: [] }, { status: 500 });
+  }
 }

@@ -55,21 +55,33 @@ function AdminOrdersContent() {
 
   const fetchSuspiciousOrders = async () => {
     setSuspiciousLoading(true);
-    const res = await fetch('/api/orders/suspicious?review_status=pending&limit=100');
-    const data = await res.json();
-    setSuspiciousOrders(data.suspiciousOrders || []);
-    setSuspiciousLoading(false);
+    try {
+      const res = await fetch('/api/orders/suspicious?review_status=pending&limit=100');
+      if (!res.ok) { setSuspiciousLoading(false); return; }
+      const data = await res.json();
+      setSuspiciousOrders(data.suspiciousOrders || []);
+    } catch (err) {
+      console.error('[orders] Failed to fetch suspicious orders:', err);
+    } finally {
+      setSuspiciousLoading(false);
+    }
   };
 
   const fetchOrders = async () => {
     setLoading(true);
     const params = new URLSearchParams({ limit: '100' });
     if (statusFilter) params.set('status', statusFilter);
-    const res = await fetch(`/api/orders?${params}`);
-    const data = await res.json();
-    setOrders(data.orders || []);
-    setTotal(data.total || 0);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/orders?${params}`);
+      if (!res.ok) { setLoading(false); return; }
+      const data = await res.json();
+      setOrders(data.orders || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      console.error('[orders] Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

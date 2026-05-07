@@ -60,10 +60,14 @@ export async function GET(req: NextRequest) {
   if (featured === '1') countQuery += ' AND p.is_featured = 1';
   if (newArrival === '1') countQuery += ' AND p.is_new_arrival = 1';
 
-  const [[countRows], [products]] = await Promise.all([
-    pool.execute<RowDataPacket[]>(countQuery, params),
-    pool.execute<RowDataPacket[]>(query + ' LIMIT ? OFFSET ?', [...params, limit, offset]),
-  ]);
-
-  return NextResponse.json({ products, total: (countRows[0] as { total: number }).total, limit, offset });
+  try {
+    const [[countRows], [products]] = await Promise.all([
+      pool.execute<RowDataPacket[]>(countQuery, params),
+      pool.execute<RowDataPacket[]>(query + ' LIMIT ? OFFSET ?', [...params, limit, offset]),
+    ]);
+    return NextResponse.json({ products, total: (countRows[0] as { total: number }).total, limit, offset });
+  } catch (err) {
+    console.error('[products] GET error:', err);
+    return NextResponse.json({ products: [], total: 0, limit, offset }, { status: 500 });
+  }
 }

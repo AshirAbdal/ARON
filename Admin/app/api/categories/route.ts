@@ -3,8 +3,13 @@ import pool from '@/lib/db';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export async function GET() {
-  const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM categories ORDER BY name ASC');
-  return NextResponse.json({ categories: rows });
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>('SELECT * FROM categories ORDER BY name ASC');
+    return NextResponse.json({ categories: rows });
+  } catch (err) {
+    console.error('[api/categories GET]', err);
+    return NextResponse.json({ error: 'Failed to fetch categories', categories: [] }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

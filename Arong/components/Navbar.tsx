@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Search, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -96,11 +97,14 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="relative flex items-center justify-between h-16">
             {/* Logo — left */}
-            <Link href="/" className="flex flex-col leading-none">
-              <span className="text-2xl font-bold tracking-wide uppercase">ARON</span>
-              <span className="text-[10px] tracking-[0.3em] text-gray-500 uppercase">
-                Cosmetics &amp; Fashion
-              </span>
+            <Link href="/" className="flex items-center gap-2 leading-none">
+              <Image src="/logo.png" alt="ARON" width={48} height={48} className="object-contain" priority />
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold tracking-wide uppercase">ARON</span>
+                <span className="text-[10px] tracking-[0.3em] text-gray-500 uppercase">
+                  Cosmetics &amp; Fashion
+                </span>
+              </div>
             </Link>
 
             {/* Desktop nav — absolutely centered relative to full header */}

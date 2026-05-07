@@ -40,11 +40,21 @@ export default function AdminProductsPage() {
     const params = new URLSearchParams({ limit: '100' });
     if (search) params.set('search', search);
     if (audienceFilter) params.set('audience', audienceFilter);
-    const res = await fetch(`/api/products?${params}`);
-    const data = await res.json();
-    setProducts(data.products || []);
-    setTotal(data.total || 0);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/products?${params}`);
+      if (!res.ok) {
+        console.error('[products] API error:', res.status);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setProducts(data.products || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      console.error('[products] Fetch failed:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

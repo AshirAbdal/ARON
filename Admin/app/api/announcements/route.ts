@@ -3,12 +3,17 @@ import pool from '@/lib/db';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export async function GET() {
-  const [rows] = await pool.execute<RowDataPacket[]>(
-    `SELECT id, message, is_active, sort_order, starts_at, ends_at, created_at
-       FROM announcements
-      ORDER BY sort_order ASC, created_at DESC`
-  );
-  return NextResponse.json({ announcements: rows });
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      `SELECT id, message, is_active, sort_order, starts_at, ends_at, created_at
+         FROM announcements
+        ORDER BY sort_order ASC, created_at DESC`
+    );
+    return NextResponse.json({ announcements: rows });
+  } catch (err) {
+    console.error('[api/announcements GET]', err);
+    return NextResponse.json({ error: 'Failed to fetch announcements', announcements: [] }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

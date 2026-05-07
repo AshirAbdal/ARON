@@ -3,6 +3,7 @@ import pool from '@/lib/db';
 import type { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
+  try {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status') || '';
   const limit = parseInt(searchParams.get('limit') || '20');
@@ -29,4 +30,8 @@ export async function GET(req: NextRequest) {
   ]);
 
   return NextResponse.json({ orders, total: (countRows[0] as { c: number }).c });
+  } catch (err) {
+    console.error('[api/orders GET]', err);
+    return NextResponse.json({ error: 'Failed to fetch orders', orders: [], total: 0 }, { status: 500 });
+  }
 }

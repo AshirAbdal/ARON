@@ -4,6 +4,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { findUsableCoupon, evaluateCoupon, eligibleProductIds, type CartItemInput } from '@/lib/coupons';
 import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email';
 import { sendTelegramOrderNotification } from '@/lib/telegram';
+import { sendMetaWhatsAppNotification } from '@/lib/whatsapp';
 import { applyRateLimit } from '@/lib/rateLimit';
 import { verifyTurnstileToken } from '@/lib/turnstile';
 import { getFraudSignal, logSuspiciousOrder } from '@/lib/fraud';
@@ -425,6 +426,10 @@ export async function POST(req: NextRequest) {
 
     sendTelegramOrderNotification({ ...baseOrderPayload, email: safeEmail || null }).catch((err) => {
       console.error('[orders] Failed to send Telegram:', err);
+    });
+
+    sendMetaWhatsAppNotification({ ...baseOrderPayload, email: safeEmail || null }).catch((err) => {
+      console.error('[orders] Failed to send WhatsApp notification:', err);
     });
 
     return NextResponse.json({ order_number, order_id: orderId, total }, { status: 201 });

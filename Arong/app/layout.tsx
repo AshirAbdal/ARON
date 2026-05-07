@@ -8,7 +8,7 @@ import CartSidebar from '@/components/CartSidebar';
 export const metadata: Metadata = {
   title: 'ARON - Cosmetics & Fashion',
   description:
-    'Discover premium cosmetics, skincare, makeup, fragrances, and fashion accessories at ARON.'
+    'Discover premium cosmetics, skincare, makeup, fragrances, and fashion accessories at ARON.',
 };
 
 export default function RootLayout({

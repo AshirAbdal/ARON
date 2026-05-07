@@ -7,12 +7,13 @@ const uploadsDir = path.resolve(process.cwd(), '..', 'Arong', 'public', 'uploads
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
+const rawHost = process.env.DB_HOST || 'localhost';
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-  user: process.env.DB_USER!,
-  password: process.env.DB_PASS!,
-  database: process.env.DB_NAME!,
+  host: rawHost === 'localhost' ? '127.0.0.1' : rawHost,
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3307,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'aron',
   waitForConnections: true,
   connectionLimit: 10,
   decimalNumbers: true,

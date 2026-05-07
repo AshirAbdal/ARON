@@ -67,9 +67,10 @@ function ShopAllContent() {
 
   useEffect(() => {
     fetch('/api/categories')
-      .then((r) => r.json())
-      .then((d) => setCategories(d.categories || []));
-  }, []);
+      .then((r) => r.ok ? r.json() : { categories: [] })
+      .then((d) => setCategories(d.categories || []))
+      .catch(() => setCategories([]));
+  }, []);  
 
   useEffect(() => {
     fetchProducts();

@@ -30,6 +30,7 @@ async function ensureSuspiciousTable(): Promise<void> {
 }
 
 export async function GET(req: NextRequest) {
+  try {
   await ensureSuspiciousTable();
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('review_status') || 'pending';
@@ -48,6 +49,10 @@ export async function GET(req: NextRequest) {
   );
 
   return NextResponse.json({ suspiciousOrders: rows });
+  } catch (err) {
+    console.error('[api/orders/suspicious GET]', err);
+    return NextResponse.json({ error: 'Failed to fetch suspicious orders', suspiciousOrders: [] }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {
