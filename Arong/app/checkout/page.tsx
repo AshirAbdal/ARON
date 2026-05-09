@@ -151,7 +151,7 @@ export default function CheckoutPage() {
   if (!hydrated) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-400 text-sm">Loading cart...</p>
+        <p className="text-gray-400 text-base">Loading cart...</p>
       </div>
     );
   }
@@ -181,11 +181,11 @@ export default function CheckoutPage() {
         {/* Left: Shipping Details */}
         <div>
           <h2 className="font-semibold text-lg mb-1">Shipping Details</h2>
-          <p className="text-sm text-gray-500 mb-6">Please enter your shipping details.</p>
+          <p className="text-base text-gray-500 mb-6">Please enter your shipping details.</p>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-base font-medium mb-1">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -193,14 +193,14 @@ export default function CheckoutPage() {
                 value={form.full_name}
                 onChange={handleInput}
                 placeholder="Enter your full name"
-                className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
+                className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
                   errors.full_name ? 'border-red-400' : 'border-gray-300'
                 }`}
               />
-              {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name}</p>}
+              {errors.full_name && <p className="text-base text-red-500 mt-1">{errors.full_name}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-base font-medium mb-1">
                 Phone <span className="text-red-500">*</span>
               </label>
               <input
@@ -208,16 +208,16 @@ export default function CheckoutPage() {
                 value={form.phone}
                 onChange={handleInput}
                 placeholder="Enter your phone number"
-                className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
+                className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
                   errors.phone ? 'border-red-400' : 'border-gray-300'
                 }`}
               />
-              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+              {errors.phone && <p className="text-base text-red-500 mt-1">{errors.phone}</p>}
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-base font-medium mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -228,28 +228,28 @@ export default function CheckoutPage() {
               placeholder="you@example.com"
               autoComplete="email"
               required
-              className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
+              className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
                 errors.email ? 'border-red-400' : 'border-gray-300'
               }`}
             />
-            <p className="text-xs text-gray-500 mt-1">We&apos;ll send your order confirmation and invoice to this email.</p>
-            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+            <p className="text-base text-gray-500 mt-1">We&apos;ll send your order confirmation and invoice to this email.</p>
+            {errors.email && <p className="text-base text-red-500 mt-1">{errors.email}</p>}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Order Note (Optional)</label>
+            <label className="block text-base font-medium mb-1">Order Note (Optional)</label>
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleInput}
               placeholder="If you have any special request or customization, please mention it here. (Optional)"
               rows={3}
-              className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black resize-none"
+              className="w-full border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:border-black resize-none"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-base font-medium mb-1">
               Full Address Details <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -258,15 +258,15 @@ export default function CheckoutPage() {
               onChange={handleInput}
               placeholder="House and street details"
               rows={3}
-              className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black resize-none ${
+              className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black resize-none ${
                 errors.address ? 'border-red-400' : 'border-gray-300'
               }`}
             />
-            {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+            {errors.address && <p className="text-base text-red-500 mt-1">{errors.address}</p>}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-base font-medium mb-1">
               Division <span className="text-red-500">*</span>
             </label>
             <select
@@ -274,7 +274,7 @@ export default function CheckoutPage() {
               name="division"
               value={form.division}
               onChange={handleInput}
-              className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black ${
+              className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
                 errors.division ? 'border-red-400' : 'border-gray-300'
               }`}
             >
@@ -285,11 +285,11 @@ export default function CheckoutPage() {
                 </option>
               ))}
             </select>
-            {errors.division && <p className="text-xs text-red-500 mt-1">{errors.division}</p>}
+            {errors.division && <p className="text-base text-red-500 mt-1">{errors.division}</p>}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-base font-medium mb-1">
               City <span className="text-red-500">*</span>
             </label>
             <select
@@ -298,7 +298,7 @@ export default function CheckoutPage() {
               value={form.city}
               onChange={handleInput}
               disabled={!form.division}
-              className={`w-full border px-3 py-2.5 text-sm focus:outline-none focus:border-black disabled:bg-gray-50 disabled:text-gray-400 ${
+              className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black disabled:bg-gray-50 disabled:text-gray-400 ${
                 errors.city ? 'border-red-400' : 'border-gray-300'
               }`}
             >
@@ -310,12 +310,12 @@ export default function CheckoutPage() {
               ))}
             </select>
             {!form.division && (
-              <p className="text-xs text-gray-500 mt-1">Please select the division first.</p>
+              <p className="text-base text-gray-500 mt-1">Please select the division first.</p>
             )}
-            {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+            {errors.city && <p className="text-base text-red-500 mt-1">{errors.city}</p>}
           </div>
 
-          <div className="bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
+          <div className="bg-gray-50 border border-gray-200 px-4 py-3 text-base text-gray-600">
             Note: We are delivering to Bangladesh only.
           </div>
         </div>
@@ -338,9 +338,9 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium line-clamp-1">{item.product_name}</p>
+                    <p className="text-base font-medium line-clamp-1">{item.product_name}</p>
                     {item.variant_name && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-base text-gray-500">
                         Selected Option: {item.variant_name} - {item.price}
                         {' '}(Price of 1 items)
                       </p>
@@ -357,7 +357,7 @@ export default function CheckoutPage() {
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-7 text-center text-xs">{item.quantity}</span>
+                        <span className="w-7 text-center text-base">{item.quantity}</span>
                         <button
                           type="button"
                           aria-label="Increase quantity"
@@ -379,7 +379,7 @@ export default function CheckoutPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm font-medium">
+                  <p className="text-base font-medium">
                     ৳{(item.price * item.quantity).toLocaleString()}
                   </p>
                 </div>
@@ -398,24 +398,24 @@ export default function CheckoutPage() {
                   setCouponValid(false);
                   setDiscount(0);
                 }}
-                className="flex-1 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                className="flex-1 border border-gray-300 px-3 py-2 text-base focus:outline-none focus:border-black"
               />
               <button
                 type="button"
                 onClick={handleCoupon}
-                className="px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-base hover:bg-gray-50 transition-colors"
               >
                 Apply
               </button>
             </div>
             {couponMsg && (
-              <p className={`text-xs mb-3 ${couponValid ? 'text-green-600' : 'text-red-500'}`}>
+              <p className={`text-base mb-3 ${couponValid ? 'text-green-600' : 'text-red-500'}`}>
                 {couponMsg}
               </p>
             )}
 
             {/* Totals */}
-            <div className="space-y-2 text-sm border-t pt-4">
+            <div className="space-y-2 text-base border-t pt-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
                 <span>৳{subtotal.toLocaleString()}</span>
@@ -440,10 +440,10 @@ export default function CheckoutPage() {
 
             {/* Payment Method */}
             <div className="mt-4 border-t pt-4">
-              <h3 className="font-semibold text-sm mb-3">Payment Method</h3>
+              <h3 className="font-semibold text-base mb-3">Payment Method</h3>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="payment" defaultChecked className="accent-black" />
-                <span className="text-sm">Cash on Delivery</span>
+                <span className="text-base">Cash on Delivery</span>
               </label>
             </div>
 
@@ -458,7 +458,7 @@ export default function CheckoutPage() {
                   }}
                   className="mt-0.5 accent-black"
                 />
-                <span className="text-xs text-gray-600 leading-relaxed">
+                <span className="text-base text-gray-600 leading-relaxed">
                   I have read and agree to the{' '}
                   <Link href="/terms" className="underline">
                     Terms and Conditions
@@ -471,7 +471,7 @@ export default function CheckoutPage() {
                 </span>
               </label>
               {errors.consent && (
-                <p className="text-xs text-red-500 mt-1">{errors.consent}</p>
+                <p className="text-base text-red-500 mt-1">{errors.consent}</p>
               )}
             </div>
 
@@ -482,7 +482,7 @@ export default function CheckoutPage() {
                   data-sitekey={turnstileSiteKey}
                   data-callback="__aronTurnstileDone"
                 />
-                {errors.captcha && <p className="text-xs text-red-500 mt-1">{errors.captcha}</p>}
+                {errors.captcha && <p className="text-base text-red-500 mt-1">{errors.captcha}</p>}
               </div>
             )}
 

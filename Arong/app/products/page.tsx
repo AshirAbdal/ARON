@@ -106,7 +106,7 @@ function ShopAllContent() {
               placeholder="Search by name, category, notes, seasons etc..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-black"
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-300 text-base focus:outline-none focus:border-black"
             />
           </div>
         </form>
@@ -116,7 +116,7 @@ function ShopAllContent() {
           aria-label="Filter by category"
           value={category}
           onChange={(e) => updateParams({ category: e.target.value })}
-          className="border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black"
+          className="border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:border-black"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -131,7 +131,7 @@ function ShopAllContent() {
           aria-label="Sort products"
           value={sort}
           onChange={(e) => updateParams({ sort: e.target.value })}
-          className="border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black"
+          className="border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:border-black"
         >
           <option value="latest">Latest</option>
           <option value="price_asc">Price: Low to High</option>
@@ -144,7 +144,7 @@ function ShopAllContent() {
           aria-label="Products per page"
           value={perPage}
           onChange={(e) => updateParams({ per: e.target.value })}
-          className="border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black"
+          className="border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:border-black"
         >
           <option value="20">20 per page</option>
           <option value="40">40 per page</option>
@@ -153,7 +153,7 @@ function ShopAllContent() {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-base text-gray-500 mb-4">
         {loading ? 'Loading...' : `${total} product${total !== 1 ? 's' : ''} found`}
       </p>
 
@@ -173,7 +173,7 @@ function ShopAllContent() {
       ) : (
         <div className="text-center py-20 text-gray-400">
           <p className="text-lg font-medium">No products found</p>
-          <p className="text-sm mt-1">Try adjusting your search or filters</p>
+          <p className="text-base mt-1">Try adjusting your search or filters</p>
         </div>
       )}
 
@@ -184,7 +184,7 @@ function ShopAllContent() {
             <button
               key={p}
               onClick={() => updateParams({ page: String(p) })}
-              className={`w-9 h-9 text-sm border transition-colors ${
+              className={`w-9 h-9 text-base border transition-colors ${
                 p === page
                   ? 'bg-black text-white border-black'
                   : 'border-gray-300 hover:border-black'

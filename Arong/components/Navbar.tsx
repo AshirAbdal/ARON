@@ -95,23 +95,23 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
-          <div className="relative flex items-center justify-between h-16">
+          <div className="relative flex items-center justify-between h-20">
             {/* Logo — left */}
-            <Link href="/" className="flex items-center gap-2 leading-none">
-              <Image src="/logo.png" alt="ARON" width={48} height={48} className="object-contain" priority />
+            <Link href="/" className="flex items-center gap-2.5 leading-none flex-shrink-0">
+              <Image src="/logo.png" alt="ARON" width={44} height={44} className="object-contain" priority />
               <div className="flex flex-col">
-                <span className="text-2xl font-bold tracking-wide uppercase">ARON</span>
-                <span className="text-[10px] tracking-[0.3em] text-gray-500 uppercase">
+                <span className="text-xl font-bold tracking-wide uppercase">ARON</span>
+                <span className="hidden lg:block text-base tracking-wider text-gray-500 uppercase">
                   Cosmetics &amp; Fashion
                 </span>
               </div>
             </Link>
 
             {/* Desktop nav — absolutely centered relative to full header */}
-            <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            <div className="hidden md:flex items-center gap-5 absolute left-1/2 -translate-x-1/2">
               <Link
                 href="/"
-                className="text-sm font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
+                className="text-base font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
               >
                 Home
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full" />
@@ -126,7 +126,7 @@ export default function Navbar() {
               >
                 <Link
                   href="/products"
-                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors flex items-center gap-1 whitespace-nowrap"
+                  className="text-base font-medium text-gray-700 hover:text-black transition-colors flex items-center gap-1 whitespace-nowrap"
                 >
                   Shop All
                   <ChevronDown className="w-3.5 h-3.5" />
@@ -140,7 +140,7 @@ export default function Navbar() {
                           setOpenDropdown(null);
                           setOpenSubmenu(null);
                         }}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
+                        className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
                       >
                         All Products
                       </Link>
@@ -156,7 +156,7 @@ export default function Navbar() {
                               setOpenDropdown(null);
                               setOpenSubmenu(null);
                             }}
-                            className="flex items-center justify-between gap-4 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
+                            className="flex items-center justify-between gap-4 px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
                           >
                             <span>{aud.label}</span>
                             <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
@@ -165,7 +165,7 @@ export default function Navbar() {
                             <div className="absolute left-full top-0 pl-1">
                               <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[180px]">
                                 {sortedCategories.length === 0 ? (
-                                  <div className="px-4 py-2 text-sm text-gray-400">Loading…</div>
+                                  <div className="px-4 py-2 text-base text-gray-400">Loading…</div>
                                 ) : (
                                   sortedCategories.map((c) => (
                                     <Link
@@ -175,7 +175,7 @@ export default function Navbar() {
                                         setOpenDropdown(null);
                                         setOpenSubmenu(null);
                                       }}
-                                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
+                                      className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
                                     >
                                       {c.name}
                                     </Link>
@@ -200,7 +200,7 @@ export default function Navbar() {
               >
                 <Link
                   href="/products"
-                  className="text-sm font-medium text-gray-700 hover:text-black transition-colors flex items-center gap-1 whitespace-nowrap"
+                  className="text-base font-medium text-gray-700 hover:text-black transition-colors flex items-center gap-1 whitespace-nowrap"
                 >
                   Products
                   <ChevronDown className="w-3.5 h-3.5" />
@@ -209,14 +209,14 @@ export default function Navbar() {
                   <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2">
                     <div className="bg-white rounded-md shadow-lg border border-gray-100 py-2 min-w-[180px]">
                       {sortedCategories.length === 0 ? (
-                        <div className="px-4 py-2 text-sm text-gray-400">Loading…</div>
+                        <div className="px-4 py-2 text-base text-gray-400">Loading…</div>
                       ) : (
                         sortedCategories.map((c) => (
                           <Link
                             key={c.id}
                             href={`/products?category=${c.slug}`}
                             onClick={() => setOpenDropdown(null)}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
+                            className="block px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-black transition-colors whitespace-nowrap"
                           >
                             {c.name}
                           </Link>
@@ -229,7 +229,7 @@ export default function Navbar() {
 
               <Link
                 href="/track-order"
-                className="text-sm font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
+                className="text-base font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
               >
                 Track Order
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full" />
@@ -237,7 +237,7 @@ export default function Navbar() {
 
               <Link
                 href="/faq"
-                className="text-sm font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
+                className="text-base font-medium text-gray-700 hover:text-black transition-colors relative group whitespace-nowrap"
               >
                 FAQ
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-black transition-all group-hover:w-full" />
@@ -260,7 +260,7 @@ export default function Navbar() {
               >
                 <ShoppingCart className="w-5 h-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute -top-2 -right-2 bg-black text-white text-base min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center font-bold leading-none">
                     {totalItems > 9 ? '9+' : totalItems}
                   </span>
                 )}
@@ -330,14 +330,14 @@ export default function Navbar() {
                         {mobileSubGroup === aud.key && (
                           <div className="pl-3 pb-1 space-y-1">
                             {sortedCategories.length === 0 ? (
-                              <span className="block py-1.5 text-sm text-gray-400">Loading…</span>
+                              <span className="block py-1.5 text-base text-gray-400">Loading…</span>
                             ) : (
                               sortedCategories.map((c) => (
                                 <Link
                                   key={c.id}
                                   href={`/products?audience=${aud.key}&category=${c.slug}`}
                                   onClick={closeMobile}
-                                  className="block py-1.5 text-sm text-gray-600 hover:text-black"
+                                  className="block py-1.5 text-base text-gray-600 hover:text-black"
                                 >
                                   {c.name}
                                 </Link>

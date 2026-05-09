@@ -34,7 +34,7 @@ export default function CartSidebar() {
       />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-50 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b">
           <h2 className="font-semibold text-lg">Shopping cart</h2>
@@ -57,7 +57,7 @@ export default function CartSidebar() {
               <p className="font-medium">Your cart is empty</p>
               <button
                 onClick={closeCart}
-                className="mt-3 text-sm underline text-gray-600 hover:text-black"
+                className="mt-3 text-base underline text-gray-600 hover:text-black"
               >
                 Continue shopping
               </button>
@@ -65,7 +65,7 @@ export default function CartSidebar() {
           ) : (
             items.map((item) => (
               <div key={`${item.product_id}-${item.variant_name}`} className="flex gap-3">
-                <div className="relative w-20 h-20 flex-shrink-0 bg-gray-50 border">
+                <div className="relative w-24 h-24 flex-shrink-0 bg-gray-50 border rounded-sm overflow-hidden">
                   <Image
                     src={item.image}
                     alt={item.product_name}
@@ -75,50 +75,52 @@ export default function CartSidebar() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium leading-snug line-clamp-2">
+                  <p className="text-base font-medium leading-snug line-clamp-2">
                     {item.product_name}
                   </p>
                   {item.variant_name && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Selected Option: {item.variant_name}
+                    <p className="text-base text-gray-500 mt-0.5">
+                      {item.variant_name}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500">Unit Price: BDT. {item.price.toFixed(2)}</p>
+                  <p className="text-base font-semibold text-gray-700 mt-0.5">
+                    BDT. {item.price.toFixed(2)}
+                  </p>
                   <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center border">
+                    <div className="flex items-center border rounded-sm">
                       <button
                         onClick={() =>
                           updateQuantity(item.product_id, item.variant_name, item.quantity - 1)
                         }
                         aria-label="Decrease quantity"
-                        className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-8 text-center text-sm">{item.quantity}</span>
+                      <span className="w-10 text-center text-base font-medium">{item.quantity}</span>
                       <button
                         onClick={() =>
                           updateQuantity(item.product_id, item.variant_name, item.quantity + 1)
                         }
                         aria-label="Increase quantity"
-                        className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.product_id, item.variant_name)}
-                      aria-label="Remove item"
-                      className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <p className="font-bold text-base">
+                        BDT. {(item.price * item.quantity).toFixed(2)}
+                      </p>
+                      <button
+                        onClick={() => removeItem(item.product_id, item.variant_name)}
+                        aria-label="Remove item"
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-sm">
-                    BDT. {(item.price * item.quantity).toFixed(2)}
-                  </p>
                 </div>
               </div>
             ))
@@ -127,19 +129,23 @@ export default function CartSidebar() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t p-5">
-            <div className="flex justify-between text-sm mb-1">
+          <div className="border-t p-5 space-y-2">
+            <div className="flex justify-between text-base">
               <span className="text-gray-600">Subtotal ({totalItems} items)</span>
-              <span>BDT. {subtotal.toFixed(2)}</span>
+              <span className="font-medium">BDT. {subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm mb-3">
+            <div className="flex justify-between text-base">
               <span className="text-gray-600">Shipping</span>
-              <span className="text-gray-500">{shipping === 0 ? 'Free' : `BDT. ${shipping}`}</span>
+              <span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>{shipping === 0 ? 'Free' : `BDT. ${shipping}`}</span>
             </div>
-            <Link href="/checkout" onClick={closeCart}>
-              <button className="w-full bg-black text-white py-3.5 flex items-center justify-between px-5 font-medium hover:bg-gray-900 transition-colors">
-                <span>Proceed To Checkout</span>
-                <span>BDT. {subtotal.toFixed(2)}</span>
+            <div className="flex justify-between text-base font-bold border-t pt-2 mt-1">
+              <span>Total</span>
+              <span>BDT. {(subtotal + shipping).toFixed(2)}</span>
+            </div>
+            <Link href="/checkout" onClick={closeCart} className="block mt-3">
+              <button className="w-full bg-black text-white py-4 flex flex-col items-center justify-center font-semibold hover:bg-gray-900 transition-colors rounded-sm gap-0.5">
+                <span className="text-base">Proceed To Checkout</span>
+                <span className="text-base opacity-75">BDT. {(subtotal + shipping).toFixed(2)}</span>
               </button>
             </Link>
           </div>

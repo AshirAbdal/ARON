@@ -79,10 +79,10 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
         {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto">
           {loading && (
-            <div className="p-6 text-center text-gray-500 text-sm">Searching...</div>
+            <div className="p-6 text-center text-gray-500 text-base">Searching...</div>
           )}
           {!loading && query && results.length === 0 && (
-            <div className="p-6 text-center text-gray-500 text-sm">
+            <div className="p-6 text-center text-gray-500 text-base">
               No products found for &quot;{query}&quot;
             </div>
           )}
@@ -103,26 +103,26 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
                 />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-sm">{product.name}</p>
+                <p className="font-medium text-base">{product.name}</p>
                 {product.category_name && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-base text-gray-500">
                     Category: {product.category_name}
                   </p>
                 )}
                 {product.brand && (
-                  <p className="text-xs text-gray-500">Brand: {product.brand}</p>
+                  <p className="text-base text-gray-500">Brand: {product.brand}</p>
                 )}
-                <p className="text-sm font-medium mt-0.5">৳{product.price_min}</p>
+                <p className="text-base font-medium mt-0.5">৳{product.price_min}</p>
               </div>
               {product.free_delivery === 1 && (
-                <span className="text-xs bg-teal-500 text-white px-2 py-0.5 rounded-full flex-shrink-0">
+                <span className="text-base bg-teal-500 text-white px-2 py-0.5 rounded-full flex-shrink-0">
                   Free Delivery
                 </span>
               )}
             </Link>
           ))}
           {!query && (
-            <div className="p-6 text-center text-gray-400 text-sm">
+            <div className="p-6 text-center text-gray-400 text-base">
               Start typing to search for products...
             </div>
           )}

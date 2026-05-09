@@ -12,7 +12,7 @@ export default function TermsPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms &amp; Conditions</h1>
-        <p className="text-sm text-gray-500">Last updated: April 2026</p>
+        <p className="text-base text-gray-500">Last updated: April 2026</p>
       </div>
 
       <div className="prose prose-sm max-w-none text-gray-700 space-y-8">
@@ -35,7 +35,7 @@ export default function TermsPage() {
           <p>
             ARON Cosmetics &amp; Fashion is an online retail business registered and operating in Bangladesh. We sell cosmetics, skincare, makeup, fragrances, and fashion accessories through our website and deliver across Bangladesh.
           </p>
-          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm space-y-1">
+          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-4 text-base space-y-1">
             <p><strong>Business Location:</strong> Sherpur, Bangladesh</p>
             <p><strong>Email:</strong> <a href="mailto:arongbd@gmail.com" className="underline text-black">arongbd@gmail.com</a></p>
             <p><strong>Phone / WhatsApp:</strong> <a href="tel:+8801700000000" className="underline text-black">+880 1700-000000</a></p>
@@ -226,7 +226,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Contact Us</h2>
           <p>For any questions about these Terms &amp; Conditions, please contact us:</p>
-          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-1.5 text-sm">
+          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-1.5 text-base">
             <p><strong>ARON Cosmetics &amp; Fashion</strong></p>
             <p>Sherpur, Bangladesh</p>
             <p>Email: <a href="mailto:arongbd@gmail.com" className="underline text-black">arongbd@gmail.com</a></p>

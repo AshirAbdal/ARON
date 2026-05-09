@@ -114,7 +114,7 @@ export default async function HomePage() {
                     />
                   )}
                 </div>
-                <span className="text-xs font-medium text-center group-hover:text-rose-600 transition-colors">
+                <span className="text-base font-medium text-center group-hover:text-rose-600 transition-colors">
                   {cat.name}
                 </span>
               </Link>
@@ -130,7 +130,7 @@ export default async function HomePage() {
             <h2 className="text-2xl font-bold">New Arrivals</h2>
             <Link
               href="/new-arrivals"
-              className="text-sm underline hover:text-gray-600 transition-colors"
+              className="text-base underline hover:text-gray-600 transition-colors"
             >
               View All New Arrivals
             </Link>
@@ -150,7 +150,7 @@ export default async function HomePage() {
             <h2 className="text-2xl font-bold">Featured Products</h2>
             <Link
               href="/products?featured=1"
-              className="text-sm underline hover:text-gray-600 transition-colors"
+              className="text-base underline hover:text-gray-600 transition-colors"
             >
               View All Featured
             </Link>

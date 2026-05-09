@@ -70,7 +70,7 @@ export default function AnnouncementBar() {
   if (loop.length === 0) return null;
 
   return (
-    <div className="bg-black text-white text-xs leading-none">
+    <div className="bg-black text-white text-base leading-none">
       <div className="overflow-hidden w-full px-4 py-2">
         <div className="marquee-track flex w-max whitespace-nowrap will-change-transform">
           {loop.map((item, i) =>
@@ -85,7 +85,7 @@ export default function AnnouncementBar() {
                 <Tag className="w-3.5 h-3.5" />
                 <span className="font-medium">{formatCoupon(item.coupon)}</span>
                 <span
-                  className={`ml-0.5 text-[9px] px-1 py-px rounded transition-colors ${
+                  className={`ml-0.5 text-base px-1 py-px rounded transition-colors ${
                     copied === item.coupon.code ? 'bg-white text-rose-600' : 'bg-white/15 text-white'
                   }`}
                 >

@@ -71,8 +71,8 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Link href={`/products/${product.slug || product.id}`} className="group block">
-      <div className="bg-white border border-gray-100 rounded-sm overflow-hidden hover:shadow-md transition-shadow">
+    <Link href={`/products/${product.slug || product.id}`} className="group block h-full">
+      <div className="bg-white border border-gray-100 rounded-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
         {/* Image container */}
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           <Image
@@ -83,58 +83,51 @@ export default function ProductCard({ product }: { product: Product }) {
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             unoptimized
           />
-          {/* Left badges — stacked vertically */}
+          {/* Left badges — compact overlay chips */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.is_new_arrival === 1 && (
-              <span className="bg-rose-500 text-white text-[10px] px-2 py-0.5 uppercase font-medium">
+              <span className="bg-rose-500 text-white text-base leading-none px-2 py-1 uppercase font-semibold rounded-sm">
                 New
               </span>
             )}
-            {product.category_name && (
-              <span className="bg-black text-white text-[10px] px-2 py-0.5 uppercase font-medium">
-                {product.category_name}
-              </span>
-            )}
             {product.discount_label && (
-              <span className="bg-teal-500 text-white text-[10px] px-2 py-0.5 font-medium">
+              <span className="bg-teal-500 text-white text-base leading-none px-2 py-1 font-semibold rounded-sm">
                 {product.discount_label}
               </span>
             )}
           </div>
-          {/* Right badge */}
+          {/* Free delivery badge — bottom left */}
           {product.free_delivery === 1 && (
-            <span className="absolute top-2 right-2 bg-teal-500 text-white text-[10px] px-2 py-0.5 font-medium">
+            <span className="absolute bottom-2 left-2 bg-black/70 text-white text-base leading-none px-2 py-1 font-medium rounded-sm">
               Free Delivery
             </span>
           )}
         </div>
 
         {/* Details */}
-        <div className="p-3">
-          <h3 className="font-medium text-sm leading-snug mb-1 line-clamp-2 group-hover:underline">
+        <div className="p-3 flex flex-col flex-1">
+          {product.category_name && (
+            <p className="text-base text-gray-400 uppercase tracking-wide mb-0.5">{product.category_name}</p>
+          )}
+          <h3 className="font-medium text-base leading-snug mb-1 line-clamp-2 group-hover:underline flex-1">
             {product.name}
           </h3>
-          {product.category_name && (
-            <p className="text-xs text-gray-500 italic mb-0.5">{product.category_name}</p>
-          )}
           {product.brand && (
-            <p className="text-xs text-gray-600 mb-2">
-              <span className="font-medium">Brand:</span> {product.brand}
-            </p>
+            <p className="text-base text-gray-500 mb-1">{product.brand}</p>
           )}
-          <p className="font-bold text-sm mb-3">{priceDisplay}</p>
+          <p className="font-bold text-base mb-3">{priceDisplay}</p>
 
-          {/* Buttons */}
-          <div className="flex gap-2">
+          {/* Buttons — stacked for clean layout */}
+          <div className="flex flex-col gap-1.5">
             <button
               onClick={handleBuyNow}
-              className="flex-1 bg-black text-white text-xs py-2 px-3 font-medium hover:bg-gray-800 transition-colors"
+              className="w-full bg-black text-white text-base py-2.5 font-medium hover:bg-gray-800 transition-colors rounded-sm"
             >
               Buy Now
             </button>
             <button
               onClick={handleAddToCart}
-              className={`flex-1 border border-black text-xs py-2 px-3 font-medium transition-colors ${
+              className={`w-full border border-black text-base py-2.5 font-medium transition-colors rounded-sm ${
                 adding
                   ? 'bg-black text-white'
                   : 'bg-white text-black hover:bg-gray-50'

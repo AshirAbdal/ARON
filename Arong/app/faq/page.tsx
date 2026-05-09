@@ -126,7 +126,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         className="w-full flex items-center justify-between px-5 py-4 text-left bg-white hover:bg-gray-50 transition-colors"
         aria-expanded={open}
       >
-        <span className="text-sm font-medium text-gray-800 pr-4">{q}</span>
+        <span className="text-base font-medium text-gray-800 pr-4">{q}</span>
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
         ) : (
@@ -135,7 +135,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       </button>
       {open && (
         <div className="px-5 py-4 bg-gray-50 border-t border-gray-200">
-          <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{a}</p>
+          <p className="text-base text-gray-600 whitespace-pre-line leading-relaxed">{a}</p>
         </div>
       )}
     </div>
@@ -148,7 +148,7 @@ export default function FAQPage() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-3">Frequently Asked Questions</h1>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 text-base">
           Can&apos;t find your answer?{' '}
           <a href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" className="text-black font-medium underline underline-offset-2 hover:opacity-70">
             Contact us on WhatsApp
@@ -160,7 +160,7 @@ export default function FAQPage() {
       <div className="space-y-10">
         {faqs.map((section) => (
           <div key={section.category}>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+            <h2 className="text-base font-bold uppercase tracking-widest text-gray-400 mb-4">
               {section.category}
             </h2>
             <div className="space-y-2">
@@ -175,19 +175,19 @@ export default function FAQPage() {
       {/* Bottom CTA */}
       <div className="mt-14 bg-black text-white rounded-xl p-8 text-center">
         <p className="text-lg font-semibold mb-2">Still have questions?</p>
-        <p className="text-gray-400 text-sm mb-5">Our team is happy to help you.</p>
+        <p className="text-gray-400 text-base mb-5">Our team is happy to help you.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a
             href="https://wa.me/8801700000000"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white text-black text-sm font-medium px-6 py-2.5 rounded hover:bg-gray-100 transition-colors"
+            className="bg-white text-black text-base font-medium px-6 py-2.5 rounded hover:bg-gray-100 transition-colors"
           >
             WhatsApp Us
           </a>
           <a
             href="mailto:arongbd@gmail.com"
-            className="border border-white text-white text-sm font-medium px-6 py-2.5 rounded hover:bg-white hover:text-black transition-colors"
+            className="border border-white text-white text-base font-medium px-6 py-2.5 rounded hover:bg-white hover:text-black transition-colors"
           >
             Email Us
           </a>

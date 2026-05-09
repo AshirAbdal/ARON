@@ -106,7 +106,7 @@ function TrackOrderContent() {
             placeholder="Order ID (e.g. ARG-123456-789)"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
-            className="flex-1 border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black"
+            className="flex-1 border border-gray-300 px-4 py-3 text-base focus:outline-none focus:border-black"
           />
           <button
             type="submit"
@@ -143,18 +143,18 @@ function TrackOrderContent() {
           <div className="border rounded-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-500">Order</p>
+                <p className="text-base text-gray-500">Order</p>
                 <p className="font-bold text-lg">{order.order_number}</p>
               </div>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                className={`px-3 py-1 rounded-full text-base font-medium capitalize ${
                   STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-800'
                 }`}
               >
                 {order.status}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-base text-gray-500 mb-1">
               Placed on:{' '}
               <span className="text-black">
                 {new Date(order.created_at).toLocaleDateString('en-BD', {
@@ -164,7 +164,7 @@ function TrackOrderContent() {
                 })}
               </span>
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-base text-gray-500">
               Delivery to:{' '}
               <span className="text-black">
                 {order.city}, {order.division}
@@ -196,10 +196,10 @@ function TrackOrderContent() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       ) : (
-                        <span className="text-xs">{i + 1}</span>
+                        <span className="text-base">{i + 1}</span>
                       )}
                     </div>
-                    <p className="text-xs mt-1 text-center capitalize w-16">{step}</p>
+                    <p className="text-base mt-1 text-center capitalize w-16">{step}</p>
                   </div>
                 ))}
               </div>
@@ -211,19 +211,19 @@ function TrackOrderContent() {
             <h3 className="font-semibold mb-4">Order Items</h3>
             <div className="space-y-3">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-start text-sm">
+                <div key={item.id} className="flex justify-between items-start text-base">
                   <div>
                     <p className="font-medium">{item.product_name}</p>
                     {item.variant_name && (
-                      <p className="text-gray-500 text-xs">{item.variant_name}</p>
+                      <p className="text-gray-500 text-base">{item.variant_name}</p>
                     )}
-                    <p className="text-gray-500 text-xs">Qty: {item.quantity}</p>
+                    <p className="text-gray-500 text-base">Qty: {item.quantity}</p>
                   </div>
                   <p className="font-medium">৳{(item.price * item.quantity).toLocaleString()}</p>
                 </div>
               ))}
             </div>
-            <div className="border-t mt-4 pt-4 space-y-1 text-sm">
+            <div className="border-t mt-4 pt-4 space-y-1 text-base">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span>৳{order.subtotal.toLocaleString()}</span>

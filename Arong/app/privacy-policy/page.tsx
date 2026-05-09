@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-        <p className="text-sm text-gray-500">Last updated: April 2026</p>
+        <p className="text-base text-gray-500">Last updated: April 2026</p>
       </div>
 
       <div className="prose prose-sm max-w-none text-gray-700 space-y-8">
@@ -171,7 +171,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Contact Us</h2>
           <p>If you have any questions about this Privacy Policy, please contact us:</p>
-          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-1.5 text-sm">
+          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-1.5 text-base">
             <p><strong>ARON Cosmetics &amp; Fashion</strong></p>
             <p>Sherpur, Bangladesh</p>
             <p>Email: <a href="mailto:arongbd@gmail.com" className="underline text-black">arongbd@gmail.com</a></p>

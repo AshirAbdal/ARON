@@ -96,7 +96,7 @@ export default function ProductDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <p className="text-lg text-gray-500">Product not found.</p>
-        <Link href="/products" className="mt-4 inline-block underline text-sm">
+        <Link href="/products" className="mt-4 inline-block underline text-base">
           Back to shop
         </Link>
       </div>
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Link
         href="/products"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-black mb-6 transition-colors"
+        className="inline-flex items-center gap-1 text-base text-gray-500 hover:text-black mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         Back to Shop
@@ -155,12 +155,12 @@ export default function ProductDetailPage() {
               unoptimized
             />
             {product.discount_label && (
-              <span className="absolute top-3 left-3 bg-teal-500 text-white text-xs px-2 py-1">
+              <span className="absolute top-3 left-3 bg-teal-500 text-white text-base px-2 py-1">
                 {product.discount_label}
               </span>
             )}
             {product.free_delivery === 1 && (
-              <span className="absolute top-3 right-3 bg-teal-500 text-white text-xs px-2 py-1">
+              <span className="absolute top-3 right-3 bg-teal-500 text-white text-base px-2 py-1">
                 Free Delivery
               </span>
             )}
@@ -194,14 +194,14 @@ export default function ProductDetailPage() {
           {product.category_name && (
             <Link
               href={`/products?category=${product.category_name.toLowerCase()}`}
-              className="text-xs text-gray-500 uppercase tracking-wider hover:text-black mb-2 block"
+              className="text-base text-gray-500 uppercase tracking-wider hover:text-black mb-2 block"
             >
               {product.category_name}
             </Link>
           )}
           <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
           {product.brand && (
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-base text-gray-600 mb-4">
               Brand: <span className="font-medium">{product.brand}</span>
             </p>
           )}
@@ -211,13 +211,13 @@ export default function ProductDetailPage() {
           {/* Variants */}
           {variants.length > 0 && (
             <div className="mb-6">
-              <p className="text-sm font-medium mb-2">Select Size / Option:</p>
+              <p className="text-base font-medium mb-2">Select Size / Option:</p>
               <div className="flex flex-wrap gap-2">
                 {variants.map((v) => (
                   <button
                     key={v.id}
                     onClick={() => setSelectedVariant(v)}
-                    className={`px-4 py-2 text-sm border transition-colors ${
+                    className={`px-4 py-2 text-base border transition-colors ${
                       selectedVariant?.id === v.id
                         ? 'bg-black text-white border-black'
                         : 'border-gray-300 hover:border-black'
@@ -232,7 +232,7 @@ export default function ProductDetailPage() {
 
           {/* Quantity */}
           <div className="flex items-center gap-4 mb-6">
-            <p className="text-sm font-medium">Quantity:</p>
+            <p className="text-base font-medium">Quantity:</p>
             <div className="flex items-center border">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -273,7 +273,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Features */}
-          <div className="border-t pt-4 space-y-2 text-sm text-gray-600">
+          <div className="border-t pt-4 space-y-2 text-base text-gray-600">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -300,7 +300,7 @@ export default function ProductDetailPage() {
           {product.description && (
             <div className="mt-6 border-t pt-6">
               <h3 className="font-semibold mb-2">Product Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+              <p className="text-base text-gray-600 leading-relaxed">{product.description}</p>
             </div>
           )}
         </div>
