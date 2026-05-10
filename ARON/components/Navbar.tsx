@@ -98,7 +98,7 @@ export default function Navbar() {
           <div className="relative flex items-center justify-between h-20">
             {/* Logo — left */}
             <Link href="/" className="flex items-center gap-2.5 leading-none flex-shrink-0">
-              <Image src="/logo.png" alt="ARON" width={44} height={44} className="object-contain" priority />
+              <Image src="/logo.jpeg" alt="ARON" width={44} height={44} className="object-contain" priority />
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-wide uppercase">ARON</span>
                 <span className="hidden lg:block text-base tracking-wider text-gray-500 uppercase">

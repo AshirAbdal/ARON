@@ -8,7 +8,7 @@ type SessionPayload = {
 };
 
 function toBase64Url(bytes: Uint8Array): string {
-  const base64 = btoa(String.fromCharCode(...bytes));
+  const base64 = btoa(String.fromCharCode(...Array.from(bytes)));
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
