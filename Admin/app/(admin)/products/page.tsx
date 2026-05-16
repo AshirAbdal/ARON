@@ -152,7 +152,7 @@ export default function AdminProductsPage() {
                             p.primary_image
                               ? p.primary_image.startsWith('http')
                                 ? p.primary_image
-                                : `http://localhost:3000${p.primary_image}`
+                                : `https://aronbd.net${p.primary_image}`
                               : '/placeholder.jpg'
                           }
                           alt={p.name}

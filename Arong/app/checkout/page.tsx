@@ -24,6 +24,9 @@ export default function CheckoutPage() {
   const router = useRouter();
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
+  const BKASH_NUMBER = '01XXXXXXXXX'; // ← Replace with your bKash/Nagad number
+  const ADVANCE_AMOUNT = 70;
+
   const [form, setForm] = useState({
     full_name: '',
     phone: '',
@@ -31,7 +34,8 @@ export default function CheckoutPage() {
     address: '',
     division: '',
     city: '',
-    notes: '',
+    bkash_number: '',
+    transaction_id: '',
   });
 
   const [couponCode, setCouponCode] = useState('');
@@ -107,6 +111,9 @@ export default function CheckoutPage() {
     if (!form.address.trim()) errs.address = 'Address is required';
     if (!form.division) errs.division = 'Please select your division';
     if (!form.city) errs.city = 'Please select your city';
+    if (!form.bkash_number.trim()) errs.bkash_number = 'bKash/Nagad number is required';
+    else if (!/^01[3-9]\d{8}$/.test(form.bkash_number.replace(/\s/g, ''))) errs.bkash_number = 'Enter a valid 11-digit bKash/Nagad number';
+    if (!form.transaction_id.trim()) errs.transaction_id = 'Transaction ID is required';
     if (!consent) errs.consent = 'You must agree to the Terms and Privacy Policy to place an order';
     if (turnstileSiteKey && !captchaToken) errs.captcha = 'Please complete captcha verification';
     setErrors(errs);
@@ -125,6 +132,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          payment_method: 'bkash_advance',
           coupon_code: couponValid ? couponCode : undefined,
           items: items.map((i) => ({
             product_id: i.product_id,
@@ -237,18 +245,6 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-base font-medium mb-1">Order Note (Optional)</label>
-            <textarea
-              name="notes"
-              value={form.notes}
-              onChange={handleInput}
-              placeholder="If you have any special request or customization, please mention it here. (Optional)"
-              rows={3}
-              className="w-full border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:border-black resize-none"
-            />
-          </div>
-
-          <div className="mb-4">
             <label className="block text-base font-medium mb-1">
               Full Address Details <span className="text-red-500">*</span>
             </label>
@@ -317,6 +313,55 @@ export default function CheckoutPage() {
 
           <div className="bg-gray-50 border border-gray-200 px-4 py-3 text-base text-gray-600">
             Note: We are delivering to Bangladesh only.
+          </div>
+
+          {/* bKash Advance Payment */}
+          <div className="mt-6">
+            <h2 className="font-semibold text-lg mb-1">অগ্রিম পেমেন্ট</h2>
+            <div className="bg-green-50 border border-green-200 rounded-sm px-4 py-4 mb-4">
+              <p className="text-base font-semibold text-green-800 mb-1">
+                বিকাশ/নগদে ৳{ADVANCE_AMOUNT} অগ্রিম পাঠান
+              </p>
+              <p className="text-base text-green-700">
+                <span className="font-semibold">{BKASH_NUMBER}</span> — Send Money (বিকাশ/নগদ)
+              </p>
+              <p className="text-base text-green-700 mt-2">
+                পেমেন্ট পাঠানোর পর নিচে আপনার নম্বর ও ট্রানজেকশন আইডি লিখুন।
+                পেমেন্ট যাচাইয়ের পর অর্ডার নিশ্চিত করা হবে।
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-base font-medium mb-1">
+                আপনার বিকাশ/নগদ নম্বর <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="bkash_number"
+                value={form.bkash_number}
+                onChange={handleInput}
+                placeholder="01XXXXXXXXX"
+                className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
+                  errors.bkash_number ? 'border-red-400' : 'border-gray-300'
+                }`}
+              />
+              {errors.bkash_number && <p className="text-base text-red-500 mt-1">{errors.bkash_number}</p>}
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-base font-medium mb-1">
+                ট্রানজেকশন আইডি <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="transaction_id"
+                value={form.transaction_id}
+                onChange={handleInput}
+                placeholder="bKash/Nagad Transaction ID"
+                className={`w-full border px-3 py-2.5 text-base focus:outline-none focus:border-black ${
+                  errors.transaction_id ? 'border-red-400' : 'border-gray-300'
+                }`}
+              />
+              {errors.transaction_id && <p className="text-base text-red-500 mt-1">{errors.transaction_id}</p>}
+            </div>
           </div>
         </div>
 
@@ -438,13 +483,11 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Payment Method */}
             <div className="mt-4 border-t pt-4">
-              <h3 className="font-semibold text-base mb-3">Payment Method</h3>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="payment" defaultChecked className="accent-black" />
-                <span className="text-base">Cash on Delivery</span>
-              </label>
+              <div className="flex items-center gap-2 text-base text-green-700 font-medium">
+                <span className="text-lg">✓</span>
+                <span>বিকাশ/নগদ অগ্রিম পেমেন্ট</span>
+              </div>
             </div>
 
             <div className="mt-4">
@@ -491,7 +534,7 @@ export default function CheckoutPage() {
               disabled={loading || !consent}
               className="w-full mt-4 bg-black text-white py-3.5 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Placing Order...' : 'Place Order'}
+              {loading ? 'Placing Order...' : `Place Order — ৳${total.toLocaleString()}`}
             </button>
           </div>
         </div>

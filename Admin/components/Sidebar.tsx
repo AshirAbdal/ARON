@@ -95,7 +95,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-white/10 space-y-2">
         <a
-          href="http://localhost:3000"
+          href="https://aronbd.net"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors"

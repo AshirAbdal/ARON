@@ -127,6 +127,8 @@ CREATE TABLE IF NOT EXISTS orders (
   status         VARCHAR(50)   NOT NULL DEFAULT 'pending',
   notes          TEXT,
   coupon_code    VARCHAR(100),
+  bkash_number   VARCHAR(50),
+  transaction_id VARCHAR(100),
   created_at     DATETIME      NOT NULL DEFAULT NOW()
 );
 

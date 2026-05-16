@@ -12,6 +12,7 @@ interface Variant {
 
 interface ProductImage {
   url: string;
+  preview?: string;
 }
 
 interface Category {
@@ -95,14 +96,16 @@ export default function ProductForm({
       for (const file of Array.from(files)) {
         const fd = new FormData();
         fd.append('file', file);
+        const preview = URL.createObjectURL(file);
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
         if (res.ok) {
           const data = await res.json();
           setForm((prev) => ({
             ...prev,
-            images: [...prev.images, { url: data.url }],
+            images: [...prev.images, { url: data.url, preview }],
           }));
         } else {
+          URL.revokeObjectURL(preview);
           const err = await res.json();
           alert(err.error || 'Upload failed');
         }
@@ -375,7 +378,7 @@ export default function ProductForm({
           {form.images.map((img, i) => (
             <div key={i} className="relative w-24 h-24 border rounded overflow-hidden group">
               <Image
-                src={img.url.startsWith('http') ? img.url : `http://localhost:3000${img.url}`}
+                src={img.preview ?? (img.url.startsWith('http') ? img.url : `https://aronbd.net${img.url}`)}
                 alt={`Product image ${i + 1}`}
                 fill
                 className="object-cover"

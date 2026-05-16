@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       full_name, phone, email, address, city, division, notes,
-      coupon_code, items, payment_method = 'cash_on_delivery', captcha_token,
+      coupon_code, items, payment_method = 'bkash_advance', captcha_token,
+      bkash_number, transaction_id,
     } = body;
 
     if (!full_name || !phone || !address || !city || !division) {
@@ -128,10 +129,19 @@ export async function POST(req: NextRequest) {
     );
     const totalByPhone = Number((totalByPhoneRows[0] as { c: number }).c || 0);
 
-    const paymentMethod = String(payment_method || 'cash_on_delivery');
-    const allowedPaymentMethods = new Set(['cash_on_delivery']);
+    const paymentMethod = String(payment_method || 'bkash_advance');
+    const allowedPaymentMethods = new Set(['cash_on_delivery', 'bkash_advance']);
     if (!allowedPaymentMethods.has(paymentMethod)) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
+    }
+
+    const safeBkashNumber = bkash_number ? String(bkash_number).trim() : null;
+    const safeTransactionId = transaction_id ? String(transaction_id).trim() : null;
+
+    if (paymentMethod === 'bkash_advance') {
+      if (!safeBkashNumber) return NextResponse.json({ error: 'bKash/Nagad number is required' }, { status: 400 });
+      if (!safeTransactionId) return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+      if (safeTransactionId.length > 100) return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 });
     }
 
     const normalizedItems: {
@@ -334,12 +344,14 @@ export async function POST(req: NextRequest) {
 
       const [orderResult] = await conn.execute<ResultSetHeader>(`
         INSERT INTO orders (order_number, full_name, phone, email, address, city, division,
-          subtotal, shipping_cost, discount, total, payment_method, notes, coupon_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          subtotal, shipping_cost, discount, total, payment_method, notes, coupon_code,
+          bkash_number, transaction_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         order_number, safeName, safePhone, safeEmail || null, safeAddress, safeCity, safeDivision,
         subtotal, shipping_cost, finalDiscount, total, paymentMethod,
         notes || null, appliedCoupon,
+        safeBkashNumber, safeTransactionId,
       ]);
 
       orderId = orderResult.insertId;
